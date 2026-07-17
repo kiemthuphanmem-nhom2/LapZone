@@ -1,0 +1,48 @@
+<!-- views/checkout.html -->
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="card-title mb-4"><i class="bi bi-bag-check"></i> Thông tin đặt hàng</h2>
+          <div class="alert alert-danger" ng-if="error">{{error}}</div>
+          <form ng-submit="submit()">
+            <div class="mb-3">
+              <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" ng-model="form.customerName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" ng-model="form.customerPhone" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+              <textarea class="form-control" ng-model="form.address" rows="3" required></textarea>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Phương thức thanh toán</label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" ng-model="form.paymentMethod" value="COD" id="cod">
+                  <label class="form-check-label" for="cod"><i class="bi bi-cash"></i> COD</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" ng-model="form.paymentMethod" value="VNPAY" id="vnpay">
+                  <label class="form-check-label" for="vnpay"><i class="bi bi-credit-card"></i> VNPay</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" ng-model="form.paymentMethod" value="MOMO" id="momo">
+                  <label class="form-check-label" for="momo">MoMo</label>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 py-2" ng-disabled="loading">
+              <span ng-if="loading"><i class="bi bi-hourglass-split"></i> Đang xử lý...</span>
+              <span ng-if="!loading"><i class="bi bi-check-circle"></i> Đặt hàng</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

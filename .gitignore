@@ -1,0 +1,31 @@
+# Dependencies
+/packages/
+/bin/
+/obj/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.sln.dotsettings
+
+# Rider files
+.idea/
+
+# Local configuration files
+appsettings.Development.json
+secrets.json

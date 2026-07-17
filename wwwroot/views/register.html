@@ -1,0 +1,40 @@
+<!-- views/register.html -->
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="card-title text-center mb-4"><i class="bi bi-person-plus"></i> Đăng ký</h2>
+        <div class="alert alert-danger" ng-if="error">{{error}}</div>
+        <div class="alert alert-success" ng-if="success">{{success}}</div>
+        <form ng-submit="register()">
+          <div class="mb-3">
+            <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" ng-model="form.fullName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" ng-model="form.email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" ng-model="form.phone" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ</label>
+            <input type="text" class="form-control" ng-model="form.address">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" ng-model="form.password" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" ng-model="form.confirmPassword" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+        </form>
+        <p class="text-center mt-3 mb-0">Đã có tài khoản? <a href="#!/login">Đăng nhập</a></p>
+      </div>
+    </div>
+  </div>
+</div>

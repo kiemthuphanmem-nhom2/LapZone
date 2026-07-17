@@ -1,0 +1,82 @@
+<!-- views/product-list.html -->
+<div>
+  <!-- Bộ lọc -->
+  <div class="bg-light py-3 mb-4 border-bottom">
+    <div class="container">
+      <form ng-submit="search()" class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <input type="text" class="form-control" placeholder="Tìm kiếm laptop..." ng-model="filter.query">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" ng-model="filter.categoryId">
+            <option value="">-- Tất cả danh mục --</option>
+            <option ng-repeat="c in categories" value="{{c.id}}">{{c.name}}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" ng-model="filter.sort">
+            <option value="newest">Mới nhất</option>
+            <option value="price_asc">Giá tăng dần</option>
+            <option value="price_desc">Giá giảm dần</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Tìm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Loading -->
+    <div class="text-center py-5" ng-if="loading">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- Kết quả -->
+    <div ng-if="!loading">
+      <p class="text-muted mb-3">Tìm thấy <strong>{{totalElements}}</strong> sản phẩm</p>
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col" ng-repeat="p in products">
+          <div class="card h-100 shadow-sm product-card">
+            <a href="#!/products/{{p.id}}">
+              <img ng-src="{{p.image || 'https://placehold.co/400x280?text=LapZone'}}"
+                   class="card-img-top" alt="{{p.name}}" style="height:220px;object-fit:cover;">
+            </a>
+            <div class="card-body">
+              <h6 class="card-title">
+                <a href="#!/products/{{p.id}}" class="text-decoration-none text-dark">{{p.name}}</a>
+              </h6>
+              <p class="text-primary fw-bold fs-5 mb-2">{{p.price | number:0}}₫</p>
+              <p class="text-muted small mb-0"><i class="bi bi-box-seam"></i> Còn {{p.stock}} sản phẩm</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <a href="#!/products/{{p.id}}" class="btn btn-outline-primary btn-sm w-100">Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="text-center py-5" ng-if="products.length === 0">
+        <i class="bi bi-search fs-1 text-muted"></i>
+        <p class="text-muted mt-2">Không tìm thấy sản phẩm phù hợp.</p>
+      </div>
+
+      <!-- Pagination -->
+      <nav class="mt-4" ng-if="totalPages > 1">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" ng-class="{disabled: filter.page === 0}">
+            <a class="page-link" href="#" ng-click="goPage(filter.page - 1)"><i class="bi bi-chevron-left"></i></a>
+          </li>
+          <li class="page-item active">
+            <span class="page-link">{{filter.page + 1}} / {{totalPages}}</span>
+          </li>
+          <li class="page-item" ng-class="{disabled: filter.page >= totalPages - 1}">
+            <a class="page-link" href="#" ng-click="goPage(filter.page + 1)"><i class="bi bi-chevron-right"></i></a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+<!-- views/admin/categories.html -->
+<div class="container mt-4">
+  <h3><i class="bi bi-grid-3x3-gap"></i> Quản lý Danh mục</h3>
+  <div class="row g-4 mt-1">
+    <!-- Form -->
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>{{form.id ? 'Cập nhật' : 'Thêm mới'}}</h5>
+          <form ng-submit="save()">
+            <div class="mb-3">
+              <label class="form-label">Tên danh mục</label>
+              <input type="text" class="form-control" ng-model="form.name" required>
+            </div>
+            <button type="submit" class="btn btn-primary me-2">Lưu</button>
+            <button type="button" class="btn btn-secondary" ng-if="form.id" ng-click="reset()">Hủy</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- Table -->
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <table class="table table-bordered mb-0">
+            <thead class="table-light">
+              <tr><th>ID</th><th>Tên danh mục</th><th style="width:120px">Thao tác</th></tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="c in categories">
+                <td>{{c.id}}</td>
+                <td>{{c.name}}</td>
+                <td>
+                  <button class="btn btn-sm btn-warning me-1" ng-click="edit(c)"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-danger" ng-click="remove(c.id)"><i class="bi bi-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

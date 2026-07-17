@@ -1,0 +1,39 @@
+<!-- views/order-detail.html -->
+<div class="container mt-4" ng-if="order">
+  <div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+      <h4 class="mb-0"><i class="bi bi-check-circle-fill"></i> Đơn hàng #{{order.id}} — {{order.status}}</h4>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Khách hàng:</strong> {{order.customerName}}</p>
+          <p><strong>SĐT:</strong> {{order.customerPhone}}</p>
+          <p><strong>Địa chỉ:</strong> {{order.address}}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Ngày đặt:</strong> {{order.orderDate | date:'dd/MM/yyyy HH:mm'}}</p>
+          <p><strong>Thanh toán:</strong> {{order.paymentMethod}}</p>
+          <p class="fs-5"><strong>Tổng tiền:</strong> <span class="text-danger fw-bold">{{order.totalAmount | number:0}}₫</span></p>
+        </div>
+      </div>
+      <h5 class="border-bottom pb-2">Chi tiết sản phẩm</h5>
+      <table class="table table-bordered" ng-if="order.details">
+        <thead class="table-light">
+          <tr><th>Sản phẩm</th><th>Đơn giá</th><th>SL</th><th>Thành tiền</th></tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="d in order.details">
+            <td><img ng-src="{{d.productImage || 'https://placehold.co/40x40'}}" width="40" class="me-2">{{d.productName}}</td>
+            <td>{{d.price | number:0}}₫</td>
+            <td>{{d.quantity}}</td>
+            <td>{{(d.price * d.quantity) | number:0}}₫</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <a href="#!/" class="btn btn-outline-primary">Tiếp tục mua sắm</a>
+    </div>
+  </div>
+</div>
