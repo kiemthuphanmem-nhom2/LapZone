@@ -1,19 +1,20 @@
 angular.module('lapzoneApp', ['ngRoute'])
     .config(['$routeProvider', function ($routeProvider) {
+        var v = '?v=' + Date.now();
         $routeProvider
-            .when('/', { templateUrl: 'views/product-list.html', controller: 'ProductListController' })
-            .when('/products/:id', { templateUrl: 'views/product-detail.html', controller: 'ProductDetailController' })
-            .when('/cart', { templateUrl: 'views/cart.html', controller: 'CartController' })
-            .when('/checkout', { templateUrl: 'views/checkout.html', controller: 'CheckoutController' })
-            .when('/login', { templateUrl: 'views/login.html', controller: 'AuthController' })
-            .when('/register', { templateUrl: 'views/register.html', controller: 'RegisterController' })
-            .when('/profile', { templateUrl: 'views/profile.html', controller: 'UserController' })
-            .when('/orders/lookup', { templateUrl: 'views/order-lookup.html', controller: 'OrderLookupController' })
-            .when('/orders/:id', { templateUrl: 'views/order-detail.html', controller: 'OrderDetailController' })
-            .when('/admin/categories', { templateUrl: 'views/admin/categories.html', controller: 'AdminCategoryController' })
-            .when('/admin/products', { templateUrl: 'views/admin/products.html', controller: 'AdminProductController' })
-            .when('/admin/orders', { templateUrl: 'views/admin/orders.html', controller: 'AdminOrderController' })
-            .when('/admin/users', { templateUrl: 'views/admin/users.html', controller: 'AdminUserController' })
+            .when('/', { templateUrl: 'views/product-list.html' + v, controller: 'ProductListController' })
+            .when('/products/:id', { templateUrl: 'views/product-detail.html' + v, controller: 'ProductDetailController' })
+            .when('/cart', { templateUrl: 'views/cart.html' + v, controller: 'CartController' })
+            .when('/checkout', { templateUrl: 'views/checkout.html' + v, controller: 'CheckoutController' })
+            .when('/login', { templateUrl: 'views/login.html' + v, controller: 'AuthController' })
+            .when('/register', { templateUrl: 'views/register.html' + v, controller: 'RegisterController' })
+            .when('/profile', { templateUrl: 'views/profile.html' + v, controller: 'UserController' })
+            .when('/orders/lookup', { templateUrl: 'views/order-lookup.html' + v, controller: 'OrderLookupController' })
+            .when('/orders/:id', { templateUrl: 'views/order-detail.html' + v, controller: 'OrderDetailController' })
+            .when('/admin/categories', { templateUrl: 'views/admin/categories.html' + v, controller: 'AdminCategoryController' })
+            .when('/admin/products', { templateUrl: 'views/admin/products.html' + v, controller: 'AdminProductController' })
+            .when('/admin/orders', { templateUrl: 'views/admin/orders.html' + v, controller: 'AdminOrderController' })
+            .when('/admin/users', { templateUrl: 'views/admin/users.html' + v, controller: 'AdminUserController' })
             .otherwise({ redirectTo: '/' });
     }])
     .config(['$httpProvider', function ($httpProvider) {
