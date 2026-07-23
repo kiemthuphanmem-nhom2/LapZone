@@ -108,4 +108,25 @@ angular.module('lapzoneApp')
                 alert((err.data && err.data.message) ? err.data.message : 'Không thể xóa');
             });
         };
+    }])
+
+/* ── Admin Dashboard ── */
+.controller('AdminDashboardController', ['$scope', '$http',
+    function ($scope, $http) {
+        $scope.stats = null;
+        $scope.loading = true;
+
+        $http.get('/api/admin/dashboard/stats').then(function (res) {
+            var stats = res.data;
+            if (stats && stats.recentOrders) {
+                stats.recentOrders.forEach(function (o) {
+                    o.customerName = o.customerName || o.customername || '';
+                    o.totalAmount = o.totalAmount || o.totalamount || 0;
+                    o.orderDate = o.orderDate || o.orderdate || '';
+                });
+            }
+            $scope.stats = stats;
+        }).finally(function () {
+            $scope.loading = false;
+        });
     }]);

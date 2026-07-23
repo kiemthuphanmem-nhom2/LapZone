@@ -11,6 +11,7 @@ angular.module('lapzoneApp', ['ngRoute'])
             .when('/profile', { templateUrl: 'views/profile.html' + v, controller: 'UserController' })
             .when('/orders/lookup', { templateUrl: 'views/order-lookup.html' + v, controller: 'OrderLookupController' })
             .when('/orders/:id', { templateUrl: 'views/order-detail.html' + v, controller: 'OrderDetailController' })
+            .when('/admin/dashboard', { templateUrl: 'views/admin/dashboard.html' + v, controller: 'AdminDashboardController' })
             .when('/admin/categories', { templateUrl: 'views/admin/categories.html' + v, controller: 'AdminCategoryController' })
             .when('/admin/products', { templateUrl: 'views/admin/products.html' + v, controller: 'AdminProductController' })
             .when('/admin/orders', { templateUrl: 'views/admin/orders.html' + v, controller: 'AdminOrderController' })
@@ -26,6 +27,8 @@ angular.module('lapzoneApp', ['ngRoute'])
             $rootScope.isAdmin = AuthService.isAdmin();
             $rootScope.currentUserName = $window.localStorage.getItem('full_name') || '';
             $rootScope.cartCount = 0;
+            $rootScope.isAdminRoute = $location.path().indexOf('/admin') === 0;
+            $rootScope.activePath = $location.path();
 
             $rootScope.updateCartCount = function () {
                 if (AuthService.isLoggedIn()) {
@@ -50,6 +53,8 @@ angular.module('lapzoneApp', ['ngRoute'])
                 $rootScope.isAdmin = false;
                 $rootScope.currentUserName = '';
                 $rootScope.cartCount = 0;
+                $rootScope.isAdminRoute = false;
+                $rootScope.activePath = '';
                 $location.path('/login');
             };
 
@@ -57,8 +62,15 @@ angular.module('lapzoneApp', ['ngRoute'])
                 $rootScope.isLoggedIn = AuthService.isLoggedIn();
                 $rootScope.isAdmin = AuthService.isAdmin();
                 $rootScope.currentUserName = $window.localStorage.getItem('full_name') || '';
+                $rootScope.isAdminRoute = $location.path().indexOf('/admin') === 0;
+                $rootScope.activePath = $location.path();
                 $rootScope.updateCartCount();
             });
 
             $rootScope.updateCartCount();
-        }]);
+        }])
+    .filter('trustAsHtml', ['$sce', function ($sce) {
+        return function (text) {
+            return text ? $sce.trustAsHtml(text) : '';
+        };
+    }]);

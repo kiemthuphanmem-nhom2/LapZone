@@ -14,8 +14,8 @@
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top" id="main-navbar">
+<!-- Navbar for public pages -->
+<nav ng-if="!isAdminRoute" class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top" id="main-navbar">
     <div class="container">
         <a class="navbar-brand fw-bold fs-4" href="#!/">
             <i class="bi bi-laptop text-primary"></i> LapZone
@@ -44,15 +44,11 @@
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle"></i> {{currentUserName}}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#!/profile"><i class="bi bi-person"></i> Hồ sơ</a></li>
-                        <li ng-if="isAdmin"><hr class="dropdown-divider"></li>
-                        <li ng-if="isAdmin"><a class="dropdown-item" href="#!/admin/categories"><i class="bi bi-grid"></i> Danh mục</a></li>
-                        <li ng-if="isAdmin"><a class="dropdown-item" href="#!/admin/products"><i class="bi bi-box"></i> Sản phẩm</a></li>
-                        <li ng-if="isAdmin"><a class="dropdown-item" href="#!/admin/orders"><i class="bi bi-receipt"></i> Đơn hàng</a></li>
-                        <li ng-if="isAdmin"><a class="dropdown-item" href="#!/admin/users"><i class="bi bi-people"></i> Người dùng</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="#!/profile"><i class="bi bi-person me-2"></i> Hồ sơ</a></li>
+                        <li ng-if="isAdmin"><a class="dropdown-item" href="#!/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i> Trang quản trị</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" ng-click="logout()"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" ng-click="logout()"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                     </ul>
                 </li>
             </ul>
@@ -60,11 +56,112 @@
     </div>
 </nav>
 
-<!-- Main Content (AngularJS ng-view) -->
-<main class="container-fluid py-4" ng-view></main>
+<!-- App Layout Wrapper -->
+<div class="app-layout-wrapper" ng-class="{'d-flex': isAdminRoute}">
 
-<!-- Footer -->
-<footer class="lz-footer">
+    <!-- Admin Sidebar (only on admin routes) -->
+    <aside ng-if="isAdminRoute" class="admin-sidebar bg-dark text-white d-flex flex-column" style="width: 260px; min-width: 260px; min-height: 100vh;">
+        <div class="sidebar-header px-4 py-3 border-bottom border-secondary d-flex align-items-center gap-2">
+            <i class="bi bi-laptop fs-4 text-primary"></i>
+            <span class="fs-5 fw-bold text-white">LapZone</span>
+            <span class="badge bg-primary text-white" style="font-size: 0.6rem; padding: 0.25em 0.5em; text-transform: uppercase; letter-spacing: 0.5px;">Admin</span>
+        </div>
+        <div class="sidebar-menu p-3 flex-grow-1">
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a href="#!/admin/dashboard" class="nav-link text-white px-3 py-2.5 rounded d-flex align-items-center gap-3" ng-class="{'bg-primary': activePath === '/admin/dashboard', 'opacity-75': activePath !== '/admin/dashboard'}">
+                        <i class="bi bi-speedometer2"></i> Tổng quan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#!/admin/products" class="nav-link text-white px-3 py-2.5 rounded d-flex align-items-center gap-3" ng-class="{'bg-primary': activePath === '/admin/products', 'opacity-75': activePath !== '/admin/products'}">
+                        <i class="bi bi-box"></i> Quản lý sản phẩm
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#!/admin/categories" class="nav-link text-white px-3 py-2.5 rounded d-flex align-items-center gap-3" ng-class="{'bg-primary': activePath === '/admin/categories', 'opacity-75': activePath !== '/admin/categories'}">
+                        <i class="bi bi-grid-3x3-gap"></i> Quản lý danh mục
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#!/admin/orders" class="nav-link text-white px-3 py-2.5 rounded d-flex align-items-center gap-3" ng-class="{'bg-primary': activePath === '/admin/orders', 'opacity-75': activePath !== '/admin/orders'}">
+                        <i class="bi bi-receipt"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#!/admin/users" class="nav-link text-white px-3 py-2.5 rounded d-flex align-items-center gap-3" ng-class="{'bg-primary': activePath === '/admin/users', 'opacity-75': activePath !== '/admin/users'}">
+                        <i class="bi bi-people"></i> Quản lý người dùng
+                    </a>
+                </li>
+                <li class="nav-item border-top border-secondary my-2 pt-2">
+                    <a href="#!/" class="nav-link text-white-50 px-3 py-2 d-flex align-items-center gap-3">
+                        <i class="bi bi-house-door"></i> Trang bán hàng
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="sidebar-footer p-3 border-top border-secondary mt-auto">
+            <div class="d-flex align-items-center gap-3 mb-2 px-1">
+                <i class="bi bi-person-circle fs-4 text-primary"></i>
+                <div class="text-truncate">
+                    <div class="fw-bold text-white small">{{currentUserName}}</div>
+                    <div class="text-white-50" style="font-size: .75rem;">Quản trị viên</div>
+                </div>
+            </div>
+            <button class="btn btn-logout-custom btn-sm w-100 mt-2 d-flex align-items-center justify-content-center gap-2" ng-click="logout()">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main-container d-flex flex-column flex-grow-1" ng-class="{'w-100': !isAdminRoute}" style="min-height: 100vh;">
+        <!-- Admin Header -->
+        <header ng-if="isAdminRoute" class="admin-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center sticky-top shadow-sm" style="z-index: 99;">
+            <div class="admin-header-left d-flex align-items-center gap-3">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <span ng-if="activePath === '/admin/dashboard'"><i class="bi bi-speedometer2 text-primary me-2"></i> Tổng quan Dashboard</span>
+                    <span ng-if="activePath === '/admin/products'"><i class="bi bi-box text-primary me-2"></i> Quản lý sản phẩm</span>
+                    <span ng-if="activePath === '/admin/categories'"><i class="bi bi-grid-3x3-gap text-primary me-2"></i> Quản lý danh mục</span>
+                    <span ng-if="activePath === '/admin/orders'"><i class="bi bi-receipt text-primary me-2"></i> Quản lý đơn hàng</span>
+                    <span ng-if="activePath === '/admin/users'"><i class="bi bi-people text-primary me-2"></i> Quản lý người dùng</span>
+                </h5>
+            </div>
+            <div class="admin-header-right d-flex align-items-center gap-3">
+                <div class="position-relative cursor-pointer me-2">
+                    <i class="bi bi-bell fs-5 text-muted"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: .65rem; padding: .25em .4em;">
+                        3
+                    </span>
+                </div>
+                <div class="dropdown">
+                    <a class="d-flex align-items-center gap-2 text-decoration-none text-dark dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5 text-primary"></i>
+                        <span class="fw-semibold">{{currentUserName}}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item py-2" href="#!/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i> Tổng quan Dashboard</a></li>
+                        <li><a class="dropdown-item py-2" href="#!/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="#" ng-click="logout()"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main ng-view container -->
+        <main class="py-4 flex-grow-1" ng-class="{'container-fluid': !isAdminRoute, 'container-fluid bg-light px-4': isAdminRoute}" ng-view></main>
+
+        <!-- Admin Footer -->
+        <footer ng-if="isAdminRoute" class="admin-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center text-muted" style="font-size: .8rem;">
+            <span>© 2026 <strong>LapZone</strong>. Admin Dashboard v2.0</span>
+            <span>Bản quyền thuộc về LapZone Dev Team</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Public Footer -->
+<footer ng-if="!isAdminRoute" class="lz-footer">
     <div class="container">
         <div class="row g-4">
 

@@ -14,34 +14,18 @@
   <!-- ── Filter Bar (top search) ───────────────────────────── -->
   <div class="filter-bar">
     <div class="container">
-      <form ng-submit="search()" class="row g-2 align-items-end">
-        <div class="col-md-5 col-sm-12">
+      <form ng-submit="search()" class="row g-2 align-items-center">
+        <div class="col">
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search text-muted"></i>
             </span>
-            <input type="text"
-                   class="form-control border-start-0"
-                   placeholder="Tìm kiếm laptop..."
-                   ng-model="filter.query"
-                   id="search-input">
+            <input type="text" class="form-control border-start-0" placeholder="Tìm kiếm laptop..."
+              ng-model="filter.query" id="search-input">
           </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-          <select class="form-select" ng-model="filter.categoryId" id="category-select">
-            <option value="">-- Tất cả danh mục --</option>
-            <option ng-repeat="c in categories" value="{{c.id}}">{{c.name}}</option>
-          </select>
-        </div>
-        <div class="col-md-2 col-sm-4">
-          <select class="form-select" ng-model="filter.sort" id="sort-select">
-            <option value="newest">Mới nhất</option>
-            <option value="price_asc">Giá tăng dần</option>
-            <option value="price_desc">Giá giảm dần</option>
-          </select>
-        </div>
-        <div class="col-md-2 col-sm-2">
-          <button type="submit" class="btn btn-primary w-100" id="btn-search">
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary px-4" id="btn-search">
             <i class="bi bi-search"></i> Tìm
           </button>
         </div>
@@ -72,17 +56,11 @@
             <div class="filter-section">
               <p class="filter-title"><i class="bi bi-tag"></i> Khoảng giá</p>
               <div class="price-range-inputs mb-2">
-                <input type="number"
-                       class="form-control form-control-sm"
-                       placeholder="Từ (triệu)"
-                       ng-model="clientFilter.priceMin"
-                       id="price-min">
+                <input type="number" class="form-control form-control-sm" placeholder="Từ (triệu)"
+                  ng-model="clientFilter.priceMin" id="price-min">
                 <span>—</span>
-                <input type="number"
-                       class="form-control form-control-sm"
-                       placeholder="Đến (triệu)"
-                       ng-model="clientFilter.priceMax"
-                       id="price-max">
+                <input type="number" class="form-control form-control-sm" placeholder="Đến (triệu)"
+                  ng-model="clientFilter.priceMax" id="price-max">
               </div>
             </div>
 
@@ -91,18 +69,14 @@
               <p class="filter-title"><i class="bi bi-grid"></i> Hãng sản xuất</p>
               <!-- Tất cả -->
               <div class="form-check">
-                <input class="form-check-input" type="radio"
-                       name="categoryFilter" id="cat-all"
-                       ng-checked="!filter.categoryId"
-                       ng-click="selectCategory(null)">
+                <input class="form-check-input" type="radio" name="categoryFilter" id="cat-all"
+                  ng-model="clientFilter.categoryId" ng-value="null">
                 <label class="form-check-label fw-semibold" for="cat-all">Tất cả hãng</label>
               </div>
               <!-- Danh sách hãng từ DB -->
               <div class="form-check" ng-repeat="c in categories">
-                <input class="form-check-input" type="radio"
-                       name="categoryFilter" id="cat-{{c.id}}"
-                       ng-checked="filter.categoryId == c.id"
-                       ng-click="selectCategory(c.id)">
+                <input class="form-check-input" type="radio" name="categoryFilter" id="cat-{{c.id}}"
+                  ng-model="clientFilter.categoryId" ng-value="c.id">
                 <label class="form-check-label" for="cat-{{c.id}}">{{c.name}}</label>
               </div>
             </div>
@@ -111,28 +85,43 @@
             <div class="filter-section">
               <p class="filter-title"><i class="bi bi-memory"></i> RAM</p>
               <div class="form-check" ng-repeat="r in ramList">
-                <input class="form-check-input"
-                       type="checkbox"
-                       ng-model="clientFilter.rams[r]"
-                       id="ram-{{r}}">
-                <label class="form-check-label" for="ram-{{r}}">{{r}}</label>
+                <input class="form-check-input" type="checkbox" ng-model="clientFilter.rams[r]" id="ram-{{$index}}">
+                <label class="form-check-label" for="ram-{{$index}}">{{r}}</label>
+              </div>
+            </div>
+
+            <!-- Ổ cứng -->
+            <div class="filter-section">
+              <p class="filter-title"><i class="bi bi-hdd-network"></i> Ổ cứng</p>
+              <div class="form-check" ng-repeat="s in storageList">
+                <input class="form-check-input" type="checkbox" ng-model="clientFilter.storages[s]"
+                  id="storage-{{$index}}">
+                <label class="form-check-label" for="storage-{{$index}}">{{s}}</label>
               </div>
             </div>
 
             <!-- Tình trạng -->
             <div class="filter-section">
-              <p class="filter-title"><i class="bi bi-shield-check"></i> Tình trạng</p>
+              <p class="filter-title"><i class="bi bi-shield-check"></i> Tình trạng máy</p>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox"
-                       ng-model="clientFilter.inStockOnly" id="filter-instock">
-                <label class="form-check-label" for="filter-instock">Chỉ hiện còn hàng</label>
+                <input class="form-check-input" type="checkbox" ng-model="clientFilter.conditions['new']" id="cond-new">
+                <label class="form-check-label" for="cond-new">Máy mới</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" ng-model="clientFilter.conditions['like_new']"
+                  id="cond-like-new">
+                <label class="form-check-label" for="cond-like-new">Like New</label>
+              </div>
+              <div class="form-check mt-2 pt-2 border-top">
+                <input class="form-check-input" type="checkbox" ng-model="clientFilter.inStockOnly" id="filter-instock">
+                <label class="form-check-label fw-semibold" for="filter-instock">Chỉ hiện hàng có sẵn</label>
               </div>
             </div>
 
             <button class="btn-filter-apply" ng-click="applyClientFilter()" id="btn-apply-filter">
               <i class="bi bi-funnel"></i> Áp dụng
             </button>
-            <button class="btn btn-link btn-filter-reset" ng-click="resetClientFilter(); selectCategory(null)" id="btn-reset-filter">
+            <button class="btn btn-link btn-filter-reset" ng-click="resetClientFilter()" id="btn-reset-filter">
               Đặt lại tất cả
             </button>
           </div>
@@ -154,66 +143,46 @@
           <!-- Result count + active filters -->
           <div class="result-row">
             <p class="result-count mb-0">
-              Hiển thị <strong>{{filteredProducts.length}}</strong>
-              <span ng-if="filteredProducts.length !== totalElements">
-                / {{totalElements}}
+              Hiển thị <strong>{{pagedProducts.length}}</strong>
+              <span ng-if="filteredProducts.length > 0">
+                / {{filteredProducts.length}}
               </span>
               sản phẩm
+              <span class="text-muted ms-1" ng-if="totalPages > 1">(Trang {{currentPage + 1}}/{{totalPages}})</span>
             </p>
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <span class="badge rounded-pill bg-primary-subtle text-primary"
-                    ng-if="clientFilter.priceMin || clientFilter.priceMax"
-                    style="font-size:.75rem; padding:.3rem .7rem;">
+                ng-if="appliedFilter.priceMin || appliedFilter.priceMax" style="font-size:.75rem; padding:.3rem .7rem;">
                 <i class="bi bi-tag-fill"></i>
-                {{clientFilter.priceMin || 0}}M — {{clientFilter.priceMax || '∞'}}M
+                {{appliedFilter.priceMin || 0}}M — {{appliedFilter.priceMax || '∞'}}M
+              </span>
+              <span class="badge rounded-pill bg-primary-subtle text-primary"
+                ng-if="appliedFilter.categoryName" style="font-size:.75rem; padding:.3rem .7rem;">
+                <i class="bi bi-grid-fill"></i>
+                {{appliedFilter.categoryName}}
               </span>
             </div>
           </div>
 
           <!-- Grid -->
           <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
-            <div class="col" ng-repeat="p in filteredProducts">
+            <div class="col" ng-repeat="p in pagedProducts">
               <div class="product-card h-100">
 
                 <!-- Image -->
                 <a href="#!/products/{{p.id}}" class="card-img-wrap d-block">
-                  <img ng-src="{{p.image || 'https://placehold.co/400x280?text=LapZone'}}"
-                       alt="{{p.name}}" loading="lazy">
-                  <!-- Stock overlay -->
-                  <span class="stock-overlay">
-                    <span class="badge-stock-low" ng-if="p.stock > 0 && p.stock <= 5">
-                      Còn {{p.stock}} chiếc
-                    </span>
-                    <span class="badge-stock-out" ng-if="p.stock === 0">
-                      Hết hàng
-                    </span>
-                  </span>
+                  <img ng-src="{{p.image || 'https://placehold.co/400x280?text=LapZone'}}" alt="{{p.name}}"
+                    loading="lazy">
                 </a>
 
                 <!-- Body -->
                 <div class="card-body d-flex flex-column">
-                  <h6 class="mb-1">
+                  <h6 class="mb-2">
                     <a href="#!/products/{{p.id}}" class="card-title-link">{{p.name}}</a>
                   </h6>
 
-                  <!-- Spec badges -->
-                  <div class="spec-badges">
-                    <span class="spec-badge" ng-if="p.cpu">
-                      <i class="bi bi-cpu"></i> {{p.cpu | limitTo:18}}
-                    </span>
-                    <span class="spec-badge" ng-if="p.ram">
-                      <i class="bi bi-memory"></i> {{p.ram}}
-                    </span>
-                    <span class="spec-badge" ng-if="p.storage">
-                      <i class="bi bi-device-ssd"></i> {{p.storage}}
-                    </span>
-                    <span class="spec-badge" ng-if="p.screen">
-                      <i class="bi bi-display"></i> {{p.screen | limitTo:12}}
-                    </span>
-                  </div>
-
                   <!-- Star rating (static decorative) -->
-                  <div class="star-rating">
+                  <div class="star-rating mb-2">
                     <span class="stars">★★★★<span style="color:#e2e8f0">★</span></span>
                     <span class="star-count">(4.0)</span>
                   </div>
@@ -222,8 +191,11 @@
                     <!-- Price -->
                     <div class="product-price">{{p.price | number:0}}₫</div>
                     <!-- Stock -->
-                    <div class="stock-text" ng-if="p.stock > 5">
+                    <div class="stock-text text-muted" ng-if="p.stock > 0">
                       <i class="bi bi-box-seam"></i> Còn {{p.stock}} sản phẩm
+                    </div>
+                    <div class="stock-text text-danger" ng-if="p.stock === 0">
+                      <i class="bi bi-x-circle"></i> Hết hàng
                     </div>
                   </div>
                 </div>
@@ -250,54 +222,28 @@
 
           <!-- ── Pagination ────────────────────────────────── -->
           <nav class="mt-4" aria-label="Phân trang" ng-if="totalPages > 1">
-            <ul class="pagination justify-content-center flex-wrap">
+            <ul class="pagination justify-content-center flex-wrap mb-1">
               <!-- Prev -->
-              <li class="page-item" ng-class="{disabled: filter.page === 0}">
-                <a class="page-link" href="javascript:void(0)"
-                   ng-click="goPage(filter.page - 1)" aria-label="Trang trước">
-                  <i class="bi bi-chevron-left"></i>
+              <li class="page-item" ng-class="{disabled: currentPage === 0}">
+                <a class="page-link" href="javascript:void(0)" ng-click="goPage(currentPage - 1)" aria-label="Trang trước">
+                  <i class="bi bi-chevron-left"></i> Trước
                 </a>
               </li>
 
-              <!-- First page always -->
-              <li class="page-item" ng-class="{active: filter.page === 0}">
-                <a class="page-link" href="javascript:void(0)" ng-click="goPage(0)">1</a>
-              </li>
-
-              <!-- Ellipsis left -->
-              <li class="page-item disabled" ng-if="filter.page > 3">
-                <span class="page-link">…</span>
-              </li>
-
-              <!-- Middle pages -->
-              <li class="page-item"
-                  ng-repeat="pg in pageRange"
-                  ng-class="{active: filter.page === pg}">
+              <!-- Page numbers -->
+              <li class="page-item" ng-repeat="pg in pageRange" ng-class="{active: currentPage === pg}">
                 <a class="page-link" href="javascript:void(0)" ng-click="goPage(pg)">{{pg + 1}}</a>
               </li>
 
-              <!-- Ellipsis right -->
-              <li class="page-item disabled" ng-if="filter.page < totalPages - 4">
-                <span class="page-link">…</span>
-              </li>
-
-              <!-- Last page always (if > 1) -->
-              <li class="page-item"
-                  ng-if="totalPages > 1"
-                  ng-class="{active: filter.page === totalPages - 1}">
-                <a class="page-link" href="javascript:void(0)" ng-click="goPage(totalPages - 1)">{{totalPages}}</a>
-              </li>
-
               <!-- Next -->
-              <li class="page-item" ng-class="{disabled: filter.page >= totalPages - 1}">
-                <a class="page-link" href="javascript:void(0)"
-                   ng-click="goPage(filter.page + 1)" aria-label="Trang sau">
-                  <i class="bi bi-chevron-right"></i>
+              <li class="page-item" ng-class="{disabled: currentPage >= totalPages - 1}">
+                <a class="page-link" href="javascript:void(0)" ng-click="goPage(currentPage + 1)" aria-label="Trang sau">
+                  Sau <i class="bi bi-chevron-right"></i>
                 </a>
               </li>
             </ul>
-            <p class="text-center text-muted small mt-1">
-              Trang {{filter.page + 1}} / {{totalPages}}
+            <p class="text-center text-muted small mb-0">
+              Hiển thị trang {{currentPage + 1}} / {{totalPages}} (tổng {{filteredProducts.length}} sản phẩm)
             </p>
           </nav>
 

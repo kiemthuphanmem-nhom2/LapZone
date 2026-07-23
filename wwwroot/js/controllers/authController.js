@@ -3,7 +3,14 @@ angular.module('lapzoneApp')
 
 .controller('AuthController', ['$scope', '$location', 'AuthService', '$rootScope',
     function ($scope, $location, AuthService, $rootScope) {
-        if (AuthService.isLoggedIn()) { $location.path('/'); return; }
+        if (AuthService.isLoggedIn()) {
+            if (AuthService.isAdmin()) {
+                $location.path('/admin/dashboard');
+            } else {
+                $location.path('/');
+            }
+            return;
+        }
         $scope.credentials = { emailOrPhone: '', password: '' };
         $scope.error = '';
         $scope.loading = false;
@@ -16,7 +23,12 @@ angular.module('lapzoneApp')
                     $rootScope.isAdmin = data.role === 'ADMIN';
                     $rootScope.currentUserName = data.fullName;
                     if ($rootScope.updateCartCount) $rootScope.updateCartCount();
-                    $location.path('/');
+                    
+                    if (data.role === 'ADMIN') {
+                        $location.path('/admin/dashboard');
+                    } else {
+                        $location.path('/');
+                    }
                 }, function (err) {
                     $scope.error = (err.data && err.data.message) ? err.data.message : 'Sai email/SĐT hoặc mật khẩu!';
                 }).finally(function () { $scope.loading = false; });

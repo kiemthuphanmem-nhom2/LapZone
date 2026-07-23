@@ -44,7 +44,9 @@ public class ProductRepository : IProductRepository
         var items = rows.Select(r => new Product
         {
             Id = (int)r.id, Name = (string)r.name, Price = (decimal)r.price,
-            Stock = (int)r.stock, Image = (string?)r.image, CategoryId = (int)r.category_id
+            Stock = (int)r.stock, Image = (string?)r.image, CategoryId = (int)r.category_id,
+            Cpu = (string?)r.cpu, Ram = (string?)r.ram, Storage = (string?)r.storage,
+            Gpu = (string?)r.gpu, Screen = (string?)r.screen, ConditionStatus = (string?)r.condition_status
         });
         return (items, total);
     }

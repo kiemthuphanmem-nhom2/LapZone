@@ -10,8 +10,10 @@
   <div class="row g-4">
     <!-- Ảnh -->
     <div class="col-md-5">
-      <img ng-src="{{product.image || 'https://placehold.co/500x380?text=LapZone'}}"
-           class="img-fluid rounded shadow" alt="{{product.name}}">
+      <div class="p-3 bg-white rounded shadow-sm border text-center">
+        <img ng-src="{{product.image || 'https://placehold.co/500x380?text=LapZone'}}"
+             class="img-fluid" alt="{{product.name}}" style="max-height:340px; object-fit:contain;">
+      </div>
     </div>
     <!-- Thông tin chính -->
     <div class="col-md-7">
@@ -59,26 +61,34 @@
         </table>
       </div>
     </div>
-    <div ng-if="product.moreInfo" class="mt-2">
-      <strong>Mô tả thêm:</strong> <span>{{product.moreInfo}}</span>
+    <div ng-if="product.moreInfo" class="mt-3 p-3 bg-light rounded border">
+      <h6 class="fw-bold mb-2"><i class="bi bi-info-circle"></i> Mô tả thêm:</h6>
+      <div class="lh-base" ng-bind-html="product.moreInfo | trustAsHtml"></div>
     </div>
   </div>
 
   <!-- Sản phẩm liên quan -->
   <div class="mt-5" ng-if="related.length > 0">
-    <h4 class="fw-bold border-bottom pb-2">Sản phẩm liên quan</h4>
+    <h4 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-grid"></i> Sản phẩm liên quan</h4>
     <div class="row row-cols-2 row-cols-md-4 g-3">
       <div class="col" ng-repeat="r in related">
-        <div class="card h-100 shadow-sm">
-          <a href="#!/products/{{r.id}}">
-            <img ng-src="{{r.image || 'https://placehold.co/300x200?text=LapZone'}}"
-                 class="card-img-top" alt="{{r.name}}" style="height:160px;object-fit:cover;">
+        <div class="product-card h-100">
+          <a href="#!/products/{{r.id}}" class="card-img-wrap d-block">
+            <img ng-src="{{r.image || 'https://placehold.co/400x280?text=LapZone'}}"
+                 alt="{{r.name}}" loading="lazy">
           </a>
-          <div class="card-body p-2">
-            <p class="card-text small fw-bold mb-1">
-              <a href="#!/products/{{r.id}}" class="text-dark text-decoration-none">{{r.name}}</a>
-            </p>
-            <p class="text-primary small fw-bold mb-0">{{r.price | number:0}}₫</p>
+          <div class="card-body p-3 d-flex flex-column">
+            <h6 class="mb-2">
+              <a href="#!/products/{{r.id}}" class="card-title-link text-truncate d-block">{{r.name}}</a>
+            </h6>
+            <div class="mt-auto">
+              <div class="product-price fs-6 mb-0">{{r.price | number:0}}₫</div>
+            </div>
+          </div>
+          <div class="card-footer-lz p-2">
+            <a href="#!/products/{{r.id}}" class="btn-view-detail py-1" style="font-size: .8rem;">
+              Xem chi tiết <i class="bi bi-arrow-right"></i>
+            </a>
           </div>
         </div>
       </div>

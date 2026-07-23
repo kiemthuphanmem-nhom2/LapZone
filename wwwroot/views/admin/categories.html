@@ -1,42 +1,74 @@
 <!-- views/admin/categories.html -->
-<div class="container mt-4">
-  <h3><i class="bi bi-grid-3x3-gap"></i> Quản lý Danh mục</h3>
-  <div class="row g-4 mt-1">
-    <!-- Form -->
+<div class="container-fluid">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb bg-transparent p-0 mb-0">
+      <li class="breadcrumb-item"><a href="#!/" class="text-decoration-none">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="#!/admin/products" class="text-decoration-none">Quản trị</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Danh mục</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="mb-4">
+    <h3 class="fw-bold mb-0 text-dark">Quản lý danh mục</h3>
+    <p class="text-muted small mb-0">Phân loại sản phẩm của hệ thống bán hàng LapZone</p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Form Card -->
     <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5>{{form.id ? 'Cập nhật' : 'Thêm mới'}}</h5>
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="fw-bold mb-0 text-dark">
+            <span ng-if="!form.id"><i class="bi bi-plus-circle text-primary me-2"></i> Thêm mới danh mục</span>
+            <span ng-if="form.id"><i class="bi bi-pencil-square text-warning me-2"></i> Cập nhật danh mục</span>
+          </h5>
+        </div>
+        <div class="card-body p-4">
           <form ng-submit="save()">
             <div class="mb-3">
-              <label class="form-label">Tên danh mục</label>
-              <input type="text" class="form-control" ng-model="form.name" required>
+              <label class="form-label fw-semibold text-secondary">Tên danh mục <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" ng-model="form.name" placeholder="Ví dụ: Apple, Dell, Asus..." required>
             </div>
-            <button type="submit" class="btn btn-primary me-2">Lưu</button>
-            <button type="button" class="btn btn-secondary" ng-if="form.id" ng-click="reset()">Hủy</button>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary px-4">Lưu lại</button>
+              <button type="button" class="btn btn-outline-secondary" ng-if="form.id" ng-click="reset()">Hủy bỏ</button>
+            </div>
           </form>
         </div>
       </div>
     </div>
-    <!-- Table -->
+
+    <!-- Table Card -->
     <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <table class="table table-bordered mb-0">
-            <thead class="table-light">
-              <tr><th>ID</th><th>Tên danh mục</th><th style="width:120px">Thao tác</th></tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="c in categories">
-                <td>{{c.id}}</td>
-                <td>{{c.name}}</td>
-                <td>
-                  <button class="btn btn-sm btn-warning me-1" ng-click="edit(c)"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-sm btn-danger" ng-click="remove(c.id)"><i class="bi bi-trash"></i></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4" style="width: 100px;">Mã ID</th>
+                  <th>Tên danh mục</th>
+                  <th class="pe-4 text-end" style="width: 150px;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="c in categories">
+                  <td class="ps-4 fw-bold text-secondary">#{{c.id}}</td>
+                  <td class="fw-bold text-dark">{{c.name}}</td>
+                  <td class="pe-4 text-end">
+                    <button class="btn btn-sm btn-outline-warning me-1" ng-click="edit(c)" title="Chỉnh sửa">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" ng-click="remove(c.id)" title="Xoá">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
