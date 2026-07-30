@@ -4,24 +4,136 @@ angular.module('lapzoneApp')
 /* ── Admin Category ── */
 .controller('AdminCategoryController', ['$scope', 'CategoryService',
     function ($scope, CategoryService) {
-        $scope.categories = [];
-        $scope.form = { id: null, name: '' };
 
-        function load() { CategoryService.getAll().then(function (res) { $scope.categories = res.data; }); }
+        /* ── State ── */
+        $scope.categories = [];
+        $scope.form       = { id: null, name: '' };
+        $scope.loading    = false;   // Trạng thái đang tải danh sách
+        $scope.saving     = false;   // Trạng thái đang lưu (disable nút Save)
+        $scope.formError  = '';      // Thông báo lỗi validation trong Modal
+        $scope.toast      = { show: false, message: '', type: 'success' };
+
+        /* ── Toast helper ──
+         * Dùng Bootstrap Toast API để hiện thông báo nổi góc phải màn hình.
+         * type: 'success' | 'danger' | 'warning'
+         */
+        $scope.showToast = function (msg, type) {
+            $scope.toast = { show: true, message: msg, type: type || 'success' };
+            var toastEl = document.getElementById('categoryToast');
+            if (toastEl) {
+                var bsToast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 });
+                bsToast.show();
+            }
+        };
+
+        /* ── Load danh sách từ API ── */
+        function load() {
+            $scope.loading = true;
+            CategoryService.getAll()
+                .then(function (res) { $scope.categories = res.data; })
+                .catch(function () { $scope.showToast('Không thể tải danh sách danh mục!', 'danger'); })
+                .finally(function () { $scope.loading = false; });
+        }
         load();
 
-        $scope.edit = function (cat) { $scope.form = { id: cat.id, name: cat.name }; };
-        $scope.reset = function () { $scope.form = { id: null, name: '' }; };
+        /* ── Reset form và validation về trạng thái ban đầu ── */
+        $scope.reset = function () {
+            $scope.form      = { id: null, name: '' };
+            $scope.formError = '';
+        };
 
+        /* ── Mở Modal ở chế độ Thêm mới ── */
+        $scope.openAdd = function () {
+            $scope.reset();
+        };
+
+        /* ── Mở Modal ở chế độ Chỉnh sửa — bind dữ liệu vào $scope.form ── */
+        $scope.openEdit = function (cat) {
+            $scope.formError = '';
+            $scope.form = { id: cat.id, name: cat.name };
+        };
+
+        /* ── Lưu (Create hoặc Update) ──
+         * Luồng:
+         *   1. Validate tên không rỗng
+         *   2. Set saving = true (disable nút Save, hiện spinner)
+         *   3. Gọi CategoryService.save() → POST /api/admin/categories/save
+         *   4. Đóng Modal bằng Bootstrap Modal JS API (không dùng data-bs-dismiss để kiểm soát tốt hơn)
+         *   5. Reload danh sách + hiện Toast thành công
+         *   6. Nếu lỗi → hiện Toast lỗi (không đóng Modal để user sửa lại)
+         */
         $scope.save = function () {
-            CategoryService.save($scope.form).then(function () { $scope.reset(); load(); },
-                function (err) { alert('Lỗi: ' + ((err.data && err.data.message) ? err.data.message : 'Không xác định')); });
+            /* --- Bước 1: Client-side validation --- */
+            if (!$scope.form.name || !$scope.form.name.trim()) {
+                $scope.formError = 'Tên danh mục không được để trống!';
+                return;
+            }
+            $scope.formError = '';
+            $scope.saving = true;
+
+            var isUpdate = !!$scope.form.id;
+
+            /* --- Bước 2: Gọi API --- */
+            CategoryService.save($scope.form)
+                .then(function () {
+                    /* --- Bước 3: Đóng Modal bằng Bootstrap JS API --- */
+                    var modalEl = document.getElementById('categoryModal');
+                    var bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+
+                    /* --- Bước 4: Reload + Toast --- */
+                    load();
+                    $scope.showToast(
+                        isUpdate ? 'Cập nhật danh mục thành công!' : 'Thêm danh mục mới thành công!',
+                        'success'
+                    );
+                })
+                .catch(function (err) {
+                    /* Lỗi → hiện Toast, KHÔNG đóng Modal để user có thể sửa */
+                    var msg = (err.data && err.data.message) ? err.data.message : 'Đã xảy ra lỗi không xác định';
+                    $scope.showToast('Lỗi: ' + msg, 'danger');
+                })
+                .finally(function () { $scope.saving = false; });
         };
 
+        /* ── Xóa danh mục ── */
         $scope.remove = function (id) {
-            if (!confirm('Xóa danh mục này?')) return;
-            CategoryService.remove(id).then(load, function (err) { alert((err.data && err.data.message) ? err.data.message : 'Không thể xóa'); });
+            /* Confirm dialog trước khi xóa */
+            if (!confirm('Bạn có chắc muốn xóa danh mục này?\nThao tác không thể hoàn tác!')) return;
+
+            CategoryService.remove(id)
+                .then(function () {
+                    load();
+                    $scope.showToast('Đã xóa danh mục thành công!', 'success');
+                })
+                .catch(function (err) {
+                    var msg = (err.data && err.data.message) ? err.data.message : 'Không thể xóa danh mục!';
+                    $scope.showToast(msg, 'danger');
+                });
         };
+
+        /* ── jQuery event: hidden.bs.modal ──
+         * Khi Modal đóng HOÀN TOÀN (animation xong), tự động reset form.
+         * Dùng $scope.$apply() để AngularJS nhận biết thay đổi từ event jQuery bên ngoài.
+         *
+         * Lý do dùng jQuery thay vì ng-click trên btn-close:
+         *   - Covers TẤT CẢ cách đóng modal: nút X, nút Hủy, click ngoài, phím Esc
+         *   - 'hidden.bs.modal' fires SAU animation → tránh flash nội dung form bị reset
+         */
+        $(document).on('hidden.bs.modal', '#categoryModal', function () {
+            $scope.$apply(function () {
+                $scope.reset();
+            });
+        });
+
+        /* ── jQuery event: shown.bs.modal ──
+         * Khi Modal mở xong (animation xong), focus vào ô input để user
+         * có thể gõ ngay mà không cần click chuột.
+         */
+        $(document).on('shown.bs.modal', '#categoryModal', function () {
+            $('#input-category-name').trigger('focus');
+        });
+
     }])
 
 /* ── Admin Product ── */

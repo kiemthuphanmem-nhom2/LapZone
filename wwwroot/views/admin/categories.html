@@ -1,5 +1,6 @@
 <!-- views/admin/categories.html -->
 <div class="container-fluid">
+
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb bg-transparent p-0 mb-0">
@@ -9,68 +10,205 @@
     </ol>
   </nav>
 
-  <!-- Page Header -->
-  <div class="mb-4">
-    <h3 class="fw-bold mb-0 text-dark">Quản lý danh mục</h3>
-    <p class="text-muted small mb-0">Phân loại sản phẩm của hệ thống bán hàng LapZone</p>
+  <!-- Page Header & Actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-0 text-dark">Quản lý danh mục</h3>
+      <p class="text-muted small mb-0">Phân loại sản phẩm của hệ thống bán hàng LapZone</p>
+    </div>
+    <button
+      id="btn-open-add-modal"
+      class="btn btn-primary shadow-sm d-flex align-items-center gap-2"
+      data-bs-toggle="modal"
+      data-bs-target="#categoryModal"
+      ng-click="openAdd()">
+      <i class="bi bi-plus-lg"></i> Thêm danh mục
+    </button>
   </div>
 
-  <div class="row g-4">
-    <!-- Form Card -->
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-bottom py-3">
-          <h5 class="fw-bold mb-0 text-dark">
-            <span ng-if="!form.id"><i class="bi bi-plus-circle text-primary me-2"></i> Thêm mới danh mục</span>
-            <span ng-if="form.id"><i class="bi bi-pencil-square text-warning me-2"></i> Cập nhật danh mục</span>
-          </h5>
+  <!-- Toast Notification (Bootstrap Toast) -->
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="categoryToast"
+         class="toast align-items-center border-0"
+         ng-class="'text-bg-' + toast.type"
+         role="alert"
+         aria-live="assertive"
+         aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body fw-semibold">
+          <i class="bi me-2"
+             ng-class="{'bi-check-circle-fill': toast.type === 'success',
+                        'bi-x-circle-fill':     toast.type === 'danger',
+                        'bi-exclamation-triangle-fill': toast.type === 'warning'}"></i>
+          {{toast.message}}
         </div>
-        <div class="card-body p-4">
-          <form ng-submit="save()">
-            <div class="mb-3">
-              <label class="form-label fw-semibold text-secondary">Tên danh mục <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" ng-model="form.name" placeholder="Ví dụ: Apple, Dell, Asus..." required>
-            </div>
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary px-4">Lưu lại</button>
-              <button type="button" class="btn btn-outline-secondary" ng-if="form.id" ng-click="reset()">Hủy bỏ</button>
-            </div>
-          </form>
-        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table Card -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4" style="width: 100px;">Mã ID</th>
+              <th>Tên danh mục</th>
+              <th class="pe-4 text-end" style="width: 160px;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- Loading state -->
+            <tr ng-if="loading">
+              <td colspan="3" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
+                  <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="text-muted mt-2 mb-0 small">Đang tải danh sách danh mục...</p>
+              </td>
+            </tr>
+
+            <!-- Empty state -->
+            <tr ng-if="!loading && categories.length === 0">
+              <td colspan="3" class="text-center py-5">
+                <i class="bi bi-grid-3x3-gap fs-1 text-muted opacity-50"></i>
+                <p class="text-muted mt-2 mb-0">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên!</p>
+                <button
+                  class="btn btn-outline-primary btn-sm mt-3"
+                  data-bs-toggle="modal"
+                  data-bs-target="#categoryModal"
+                  ng-click="openAdd()">
+                  <i class="bi bi-plus-lg me-1"></i> Thêm ngay
+                </button>
+              </td>
+            </tr>
+
+            <!-- Data rows with ng-repeat -->
+            <tr ng-repeat="c in categories" ng-if="!loading">
+              <td class="ps-4 fw-bold text-secondary">#{{c.id}}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-primary-subtle text-primary rounded-circle"
+                        style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-grid-3x3-gap" style="font-size: .75rem;"></i>
+                  </span>
+                  <span class="fw-semibold text-dark">{{c.name}}</span>
+                </div>
+              </td>
+              <td class="pe-4 text-end">
+                <!-- Nút Sửa — mở Modal và điền dữ liệu vào form -->
+                <button
+                  id="btn-edit-{{c.id}}"
+                  class="btn btn-sm btn-outline-warning me-1"
+                  data-bs-toggle="modal"
+                  data-bs-target="#categoryModal"
+                  ng-click="openEdit(c)"
+                  title="Chỉnh sửa danh mục">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <!-- Nút Xóa -->
+                <button
+                  id="btn-delete-{{c.id}}"
+                  class="btn btn-sm btn-outline-danger"
+                  ng-click="remove(c.id)"
+                  title="Xóa danh mục">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Table Card -->
-    <div class="col-md-8">
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4" style="width: 100px;">Mã ID</th>
-                  <th>Tên danh mục</th>
-                  <th class="pe-4 text-end" style="width: 150px;">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-repeat="c in categories">
-                  <td class="ps-4 fw-bold text-secondary">#{{c.id}}</td>
-                  <td class="fw-bold text-dark">{{c.name}}</td>
-                  <td class="pe-4 text-end">
-                    <button class="btn btn-sm btn-outline-warning me-1" ng-click="edit(c)" title="Chỉnh sửa">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" ng-click="remove(c.id)" title="Xoá">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- Card Footer: tổng số danh mục -->
+    <div class="card-footer bg-white border-top py-2 px-4 d-flex justify-content-between align-items-center"
+         ng-if="!loading && categories.length > 0">
+      <span class="text-muted small">
+        Tổng cộng: <strong class="text-dark">{{categories.length}}</strong> danh mục
+      </span>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       Bootstrap Modal — Form Thêm / Sửa Danh Mục
+       ============================================================ -->
+  <div class="modal fade" id="categoryModal" tabindex="-1"
+       aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+
+        <!-- Modal Header -->
+        <div class="modal-header border-bottom pb-3">
+          <h5 class="modal-title fw-bold" id="categoryModalLabel">
+            <i class="bi me-2 text-primary"
+               ng-class="{'bi-plus-circle': !form.id, 'bi-pencil-square': form.id}"></i>
+            <span ng-if="!form.id">Thêm mới danh mục</span>
+            <span ng-if="form.id">Cập nhật danh mục</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+
+        <!-- Modal Body — Form với ng-model -->
+        <div class="modal-body py-4">
+          <div class="mb-3">
+            <label for="input-category-name" class="form-label fw-semibold text-secondary">
+              Tên danh mục <span class="text-danger">*</span>
+            </label>
+            <input
+              id="input-category-name"
+              type="text"
+              class="form-control form-control-lg"
+              ng-class="{'is-invalid': formError}"
+              ng-model="form.name"
+              placeholder="Ví dụ: Apple, Dell, Asus, Lenovo..."
+              ng-keyup="$event.keyCode === 13 && save()"
+              autofocus>
+            <!-- Validation error message -->
+            <div class="invalid-feedback" ng-if="formError">
+              <i class="bi bi-exclamation-circle me-1"></i>{{formError}}
+            </div>
+          </div>
+
+          <!-- Thông tin bổ sung khi ở chế độ Sửa -->
+          <div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2 small" ng-if="form.id">
+            <i class="bi bi-info-circle-fill text-info"></i>
+            Đang chỉnh sửa danh mục <strong>#{{form.id}}</strong>
           </div>
         </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-top pt-3">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            data-bs-dismiss="modal"
+            id="btn-modal-cancel">
+            <i class="bi bi-x-lg me-1"></i> Hủy bỏ
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary px-4"
+            ng-click="save()"
+            ng-disabled="saving"
+            id="btn-modal-save">
+            <span ng-if="!saving">
+              <i class="bi bi-floppy me-1"></i>
+              {{form.id ? 'Cập nhật' : 'Lưu lại'}}
+            </span>
+            <span ng-if="saving">
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+              Đang lưu...
+            </span>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
+
 </div>
