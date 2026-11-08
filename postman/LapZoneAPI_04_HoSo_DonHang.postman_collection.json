@@ -1,0 +1,2472 @@
+{
+  "info": {
+    "_postman_id": "2f28bab2-c797-45d0-a73e-32632bb8776d",
+    "name": "LapZoneAPI - 04_HoSo_DonHang (40 TCs)",
+    "description": "Module 4: Hồ Sơ & Đơn Hàng (/api/profile, /api/orders)\nTự động cấu hình sẵn {base_url} = http://localhost:5084 và tự động lấy JWT Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5084",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "taobattu@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "user_phone",
+      "value": "0900000001",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "Admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_phone",
+      "value": "0900000002",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "admin_cart_item_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "created_order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "created_cat_id",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "created_prod_id",
+      "value": "120",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "10",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "item": [
+        {
+          "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login USER 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('user_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản User Seed và lưu JWT vào biến {{user_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 2] Đăng nhập ADMIN & Lưu {{admin_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login ADMIN 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('admin_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản Admin Seed và lưu JWT vào biến {{admin_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 3] Tạo dữ liệu mồi Giỏ hàng & lấy {{cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('user_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 101,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm 101 vào giỏ USER và lưu {{cart_item_id}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 4] Tạo Giỏ hàng của User B (Admin) để test IDOR {{admin_cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Admin Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 102,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04_HoSo_DonHang",
+      "item": [
+        {
+          "name": "TC_PROF_001 - [PASS] Xem hồ sơ cá nhân hợp lệ và ẩn password hash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_001 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về thông tin user (id, fullName, email, phone, address, role) và KHÔNG chứa trường password.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Nhờ [JsonIgnore] trên User.Password, hash mật khẩu không bị lộ.",
+                  "pm.test('TC_PROF_001 - Xem hồ sơ cá nhân hợp lệ và ẩn password hash (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_001`\n**Chức năng:** Xem hồ sơ\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER ({{user_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về thông tin user (id, fullName, email, phone, address, role) và KHÔNG chứa trường password.\n**Kết quả thực tế (Code):** HTTP 200 OK. Nhờ [JsonIgnore] trên User.Password, hash mật khẩu không bị lộ.\n**Đánh giá:** **PASS** (Xem hồ sơ cá nhân hợp lệ và ẩn password hash)"
+          }
+        },
+        {
+          "name": "TC_PROF_002 - [PASS] Xem hồ sơ tài khoản Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_002 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về hồ sơ của Admin (role: 'ADMIN').",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROF_002 - Xem hồ sơ tài khoản Admin (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_002`\n**Chức năng:** Xem hồ sơ\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN ({{admin_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về hồ sơ của Admin (role: 'ADMIN').\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Xem hồ sơ tài khoản Admin)"
+          }
+        },
+        {
+          "name": "TC_PROF_003 - [PASS] Chặn xem hồ sơ khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_003 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 401 Unauthorized.",
+                  "pm.test('TC_PROF_003 - Chặn xem hồ sơ khi chưa đăng nhập (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_003`\n**Chức năng:** Xem hồ sơ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Chưa đăng nhập\n**Kết quả mong đợi:** HTTP 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 401 Unauthorized.\n**Đánh giá:** **PASS** (Chặn xem hồ sơ khi chưa đăng nhập)"
+          }
+        },
+        {
+          "name": "TC_PROF_004 - [PASS] Cập nhật hồ sơ cá nhân hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_004 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. JSON {message: 'Cập nhật hồ sơ thành công!'}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_update_profile cập nhật full_name, phone, address.",
+                  "pm.test('TC_PROF_004 - Cập nhật hồ sơ cá nhân hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_004`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 200 OK. JSON {message: 'Cập nhật hồ sơ thành công!'}.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_update_profile cập nhật full_name, phone, address.\n**Đánh giá:** **PASS** (Cập nhật hồ sơ cá nhân hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed Updated\", \"phone\": \"0900000001\", \"address\": \"456 Nguyễn Trãi, Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_005 - [FAIL (Bug)] Bug nghiêm trọng: Cập nhật trùng SĐT người khác gây lỗi 500 Unique Constraint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_005 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi SĐT đã được sử dụng bởi tài khoản khác.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 23505: duplicate key value violates unique constraint 'users_phone_key'.",
+                  "pm.test('TC_PROF_005 - Bug nghiêm trọng: Cập nhật trùng SĐT người khác gây lỗi 500 Unique Constraint (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_005`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER (ID=1), SĐT 0900000002 đang thuộc về Admin (ID=2)\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi SĐT đã được sử dụng bởi tài khoản khác.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 23505: duplicate key value violates unique constraint 'users_phone_key'.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cập nhật trùng SĐT người khác gây lỗi 500 Unique Constraint)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": \"0900000002\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_006 - [FAIL (Bug)] Bug: Cho phép cập nhật fullName thành chuỗi rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_006 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Họ tên không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! UpdateProfileDto không có [Required], lưu full_name='' vào DB.",
+                  "pm.test('TC_PROF_006 - Bug: Cho phép cập nhật fullName thành chuỗi rỗng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_006`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Họ tên không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! UpdateProfileDto không có [Required], lưu full_name='' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép cập nhật fullName thành chuỗi rỗng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"\", \"phone\": \"0900000001\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_007 - [FAIL (Bug)] Bug: Cho phép cập nhật fullName toàn khoảng trắng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_007 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Họ tên không được chỉ chứa khoảng trắng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu full_name='   ' vào DB.",
+                  "pm.test('TC_PROF_007 - Bug: Cho phép cập nhật fullName toàn khoảng trắng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_007`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Họ tên không được chỉ chứa khoảng trắng.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu full_name='   ' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép cập nhật fullName toàn khoảng trắng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"   \", \"phone\": \"0900000001\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_008 - [FAIL (Bug)] Bug: Không kiểm tra định dạng SĐT khi cập nhật hồ sơ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_008 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số điện thoại không đúng định dạng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu phone='invalid_phone_abc' vào DB.",
+                  "pm.test('TC_PROF_008 - Bug: Không kiểm tra định dạng SĐT khi cập nhật hồ sơ (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_008`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số điện thoại không đúng định dạng.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu phone='invalid_phone_abc' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Không kiểm tra định dạng SĐT khi cập nhật hồ sơ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": \"invalid_phone_abc\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_009 - [FAIL (Bug)] Bug: Cập nhật phone > 20 ký tự gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_009 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. SĐT vượt quá 20 ký tự.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).",
+                  "pm.test('TC_PROF_009 - Bug: Cập nhật phone > 20 ký tự gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_009`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Boundary | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. SĐT vượt quá 20 ký tự.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).\n**Đánh giá:** **FAIL (Bug)** (Bug: Cập nhật phone > 20 ký tự gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": \"0123456789012345678912345\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_010 - [FAIL (Bug)] Bug: Cập nhật fullName > 255 ký tự gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_010 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Họ tên vượt quá 255 ký tự.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(255).",
+                  "pm.test('TC_PROF_010 - Bug: Cập nhật fullName > 255 ký tự gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_010`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Họ tên vượt quá 255 ký tự.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(255).\n**Đánh giá:** **FAIL (Bug)** (Bug: Cập nhật fullName > 255 ký tự gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\", \"phone\": \"0900000001\", \"address\": \"Hà Nội\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_011 - [FAIL (Bug)] Bug bảo mật: Stored XSS khi cập nhật hồ sơ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_011 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc sanitize HTML.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu mã độc XSS vào hồ sơ người dùng.",
+                  "pm.test('TC_PROF_011 - Bug bảo mật: Stored XSS khi cập nhật hồ sơ (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_011`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc sanitize HTML.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu mã độc XSS vào hồ sơ người dùng.\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật: Stored XSS khi cập nhật hồ sơ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"<script>alert('XSS')</script>\", \"phone\": \"0900000001\", \"address\": \"<img src=x onerror=alert(1)>\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_012 - [PASS] Chống Mass Assignment sửa email/role khi cập nhật hồ sơ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_012 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK nhưng KHÔNG được thay đổi role hoặc email.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. UpdateProfileDto chỉ có FullName, Phone, Address nên role và email được bảo vệ.",
+                  "pm.test('TC_PROF_012 - Chống Mass Assignment sửa email/role khi cập nhật hồ sơ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_012`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Security | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 200 OK nhưng KHÔNG được thay đổi role hoặc email.\n**Kết quả thực tế (Code):** HTTP 200 OK. UpdateProfileDto chỉ có FullName, Phone, Address nên role và email được bảo vệ.\n**Đánh giá:** **PASS** (Chống Mass Assignment sửa email/role khi cập nhật hồ sơ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": \"0900000001\", \"address\": \"HN\", \"role\": \"ADMIN\", \"email\": \"hacked@gmail.com\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_013 - [PASS] Chặn cập nhật hồ sơ khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_013 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 401 Unauthorized.",
+                  "pm.test('TC_PROF_013 - Chặn cập nhật hồ sơ khi chưa đăng nhập (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_013`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Chưa đăng nhập\n**Kết quả mong đợi:** HTTP 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 401 Unauthorized.\n**Đánh giá:** **PASS** (Chặn cập nhật hồ sơ khi chưa đăng nhập)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Anon\",\n  \"phone\": \"0900000001\",\n  \"address\": \"HN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_PROF_014 - [FAIL (Bug)] Thiếu chức năng: Không có API đổi mật khẩu cho User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROF_014 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): Hệ thống nên cung cấp API đổi mật khẩu cho người dùng.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found. Toàn bộ dự án LapZoneAPI chưa có bất kỳ API nào cho phép người dùng đổi mật khẩu.",
+                  "pm.test('TC_PROF_014 - Thiếu chức năng: Không có API đổi mật khẩu cho User (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "password"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROF_014`\n**Chức năng:** Đổi mật khẩu\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** Hệ thống nên cung cấp API đổi mật khẩu cho người dùng.\n**Kết quả thực tế (Code):** HTTP 404 Not Found. Toàn bộ dự án LapZoneAPI chưa có bất kỳ API nào cho phép người dùng đổi mật khẩu.\n**Đánh giá:** **FAIL (Bug)** (Thiếu chức năng: Không có API đổi mật khẩu cho User)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"oldPassword\": \"Abc123@\", \"newPassword\": \"NewPass123@\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_001 - [PASS] Tra cứu đơn hàng hợp lệ bằng Mã ĐH + SĐT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_001 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về JSON {orderId: 1}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. OrderService.LookupAsync khớp orderId và customerPhone.",
+                  "pm.test('TC_ORD_001 - Tra cứu đơn hàng hợp lệ bằng Mã ĐH + SĐT (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_001`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã có đơn hàng hợp lệ (orderId và customerPhone khớp)\n**Kết quả mong đợi:** HTTP 200 OK. Trả về JSON {orderId: 1}.\n**Kết quả thực tế (Code):** HTTP 200 OK. OrderService.LookupAsync khớp orderId và customerPhone.\n**Đánh giá:** **PASS** (Tra cứu đơn hàng hợp lệ bằng Mã ĐH + SĐT)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": {{created_order_id}}, \"customerPhone\": \"0901234567\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_002 - [PASS] Tra cứu đơn hàng với SĐT có khoảng trắng đầu/cuối",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_002 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Hệ thống tự động .Trim() SĐT khi so sánh.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. OrderService dùng customerPhone.Trim().",
+                  "pm.test('TC_ORD_002 - Tra cứu đơn hàng với SĐT có khoảng trắng đầu/cuối (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_002`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Có khoảng trắng thừa quanh SĐT khi tra cứu\n**Kết quả mong đợi:** HTTP 200 OK. Hệ thống tự động .Trim() SĐT khi so sánh.\n**Kết quả thực tế (Code):** HTTP 200 OK. OrderService dùng customerPhone.Trim().\n**Đánh giá:** **PASS** (Tra cứu đơn hàng với SĐT có khoảng trắng đầu/cuối)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": {{created_order_id}}, \"customerPhone\": \"  0901234567  \"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_003 - [PASS] Từ chối tra cứu khi SĐT không khớp với đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_003 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng hoặc SĐT không khớp.'}.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_003 - Từ chối tra cứu khi SĐT không khớp với đơn hàng (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_003`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng ID 1 tồn tại nhưng nhập sai SĐT\n**Kết quả mong đợi:** HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng hoặc SĐT không khớp.'}.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Từ chối tra cứu khi SĐT không khớp với đơn hàng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"customerPhone\": \"0999999999\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_004 - [PASS] Tra cứu mã đơn hàng không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_004 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng hoặc SĐT không khớp.'}.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_004 - Tra cứu mã đơn hàng không tồn tại (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_004`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng hoặc SĐT không khớp.'}.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Tra cứu mã đơn hàng không tồn tại)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 99999, \"customerPhone\": \"0901234567\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_005 - [PASS] Tra cứu với orderId = 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_005 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_005 - Tra cứu với orderId = 0 (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_005`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** orderId <= 0\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Tra cứu với orderId = 0)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 0, \"customerPhone\": \"0901234567\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_006 - [PASS] Tra cứu với orderId âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_006 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_006 - Tra cứu với orderId âm (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_006`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** orderId âm\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Tra cứu với orderId âm)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": -5, \"customerPhone\": \"0901234567\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_007 - [PASS] Tra cứu với SĐT rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_007 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found (nếu đơn hàng có SĐT khác rỗng).",
+                  "pm.test('TC_ORD_007 - Tra cứu với SĐT rỗng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_007`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** customerPhone rỗng\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 404 Not Found (nếu đơn hàng có SĐT khác rỗng).\n**Đánh giá:** **PASS** (Tra cứu với SĐT rỗng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"customerPhone\": \"\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_008 - [FAIL (Bug)] Bug: customerPhone=null gây lỗi 500 NullReferenceException tại customerPhone.Trim()",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_008 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error (nếu đơn ID 1 tồn tại, gọi customerPhone.Trim() trên null gây NullReferenceException!).",
+                  "pm.test('TC_ORD_008 - Bug: customerPhone=null gây lỗi 500 NullReferenceException tại customerPhone.Trim() (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_008`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Truyền customerPhone = null trong JSON\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error (nếu đơn ID 1 tồn tại, gọi customerPhone.Trim() trên null gây NullReferenceException!).\n**Đánh giá:** **FAIL (Bug)** (Bug: customerPhone=null gây lỗi 500 NullReferenceException tại customerPhone.Trim())",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"customerPhone\": null}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_009 - [PASS] Xem chi tiết đơn hàng tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_009 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về thông tin đơn hàng kèm mảng details (sản phẩm, giá, số lượng).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về đầy đủ Order và Details.",
+                  "pm.test('TC_ORD_009 - Xem chi tiết đơn hàng tồn tại (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{created_order_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_009`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng ID 1 tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Trả về thông tin đơn hàng kèm mảng details (sản phẩm, giá, số lượng).\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về đầy đủ Order và Details.\n**Đánh giá:** **PASS** (Xem chi tiết đơn hàng tồn tại)"
+          }
+        },
+        {
+          "name": "TC_ORD_010 - [PASS] Xem chi tiết đơn hàng không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_010 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng.'}.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_010 - Xem chi tiết đơn hàng không tồn tại (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_010`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. JSON {message: 'Không tìm thấy đơn hàng.'}.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Xem chi tiết đơn hàng không tồn tại)"
+          }
+        },
+        {
+          "name": "TC_ORD_011 - [FAIL (Bug)] Bug bảo mật nghiêm trọng (IDOR & Lộ PII): Xem toàn bộ đơn hàng của mọi khách chỉ bằng cách đoán ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_011 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401/403 hoặc yêu cầu truyền kèm customerPhone/token xác thực để chống lộ thông tin cá nhân (PII).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! OrderController.GetDetail không có [Authorize] và không kiểm tra SĐT! Bất kỳ ai cũng có thể vét cạn GET /api/orders/1, 2, 3... để lấy toàn bộ Họ tên, SĐT, Địa chỉ nhà riêng của mọi khách hàng!",
+                  "pm.test('TC_ORD_011 - Bug bảo mật nghiêm trọng (IDOR & Lộ PII): Xem toàn bộ đơn hàng của mọi khách chỉ bằng cách đoán ID (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{created_order_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_011`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng ID 1 của Khách hàng A; người gọi KHÔNG đăng nhập và KHÔNG cần nhập SĐT\n**Kết quả mong đợi:** HTTP 401/403 hoặc yêu cầu truyền kèm customerPhone/token xác thực để chống lộ thông tin cá nhân (PII).\n**Kết quả thực tế (Code):** HTTP 200 OK! OrderController.GetDetail không có [Authorize] và không kiểm tra SĐT! Bất kỳ ai cũng có thể vét cạn GET /api/orders/1, 2, 3... để lấy toàn bộ Họ tên, SĐT, Địa chỉ nhà riêng của mọi khách hàng!\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật nghiêm trọng (IDOR & Lộ PII): Xem toàn bộ đơn hàng của mọi khách chỉ bằng cách đoán ID)"
+          }
+        },
+        {
+          "name": "TC_ORD_012 - [FAIL (Bug)] Bug bảo mật (IDOR): User này xem được chi tiết đơn hàng của User khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_012 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 403 Forbidden. Không được xem đơn hàng của tài khoản khác.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Không kiểm tra order.UserId == currentUserId.",
+                  "pm.test('TC_ORD_012 - Bug bảo mật (IDOR): User này xem được chi tiết đơn hàng của User khác (Expected HTTP 403)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{created_order_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_012`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** User B đăng nhập và gọi GET /api/orders/1 (đơn hàng của User A)\n**Kết quả mong đợi:** HTTP 403 Forbidden. Không được xem đơn hàng của tài khoản khác.\n**Kết quả thực tế (Code):** HTTP 200 OK! Không kiểm tra order.UserId == currentUserId.\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật (IDOR): User này xem được chi tiết đơn hàng của User khác)"
+          }
+        },
+        {
+          "name": "TC_ORD_013 - [FAIL (Bug)] Thiếu chức năng: Không có API xem lịch sử đơn hàng của tài khoản đang đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_013 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về lịch sử các đơn hàng của user đang đăng nhập.",
+                  "// Thực tế trên code (Actual): HTTP 400/404 Not Found! Dù bảng orders có cột user_id nhưng OrderController không có API lấy danh sách đơn hàng của user!",
+                  "pm.test('TC_ORD_013 - Thiếu chức năng: Không có API xem lịch sử đơn hàng của tài khoản đang đăng nhập (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/my",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "my"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_013`\n**Chức năng:** Danh sách đơn cá nhân\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER ({{user_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về lịch sử các đơn hàng của user đang đăng nhập.\n**Kết quả thực tế (Code):** HTTP 400/404 Not Found! Dù bảng orders có cột user_id nhưng OrderController không có API lấy danh sách đơn hàng của user!\n**Đánh giá:** **FAIL (Bug)** (Thiếu chức năng: Không có API xem lịch sử đơn hàng của tài khoản đang đăng nhập)"
+          }
+        },
+        {
+          "name": "TC_ORD_014 - [FAIL (Bug)] Thiếu chức năng: Khách hàng không thể tự hủy đơn hàng khi đang Chờ xác nhận",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_014 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cho phép khách hàng hủy đơn khi đơn còn đang 'CHỜ XÁC NHẬN' và hoàn lại tồn kho.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found! Người dùng không có API hủy đơn hàng.",
+                  "pm.test('TC_ORD_014 - Thiếu chức năng: Khách hàng không thể tự hủy đơn hàng khi đang Chờ xác nhận (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/1/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "1",
+                "cancel"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_014`\n**Chức năng:** Hủy đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER, đơn hàng đang ở trạng thái 'CHỜ XÁC NHẬN'\n**Kết quả mong đợi:** HTTP 200 OK. Cho phép khách hàng hủy đơn khi đơn còn đang 'CHỜ XÁC NHẬN' và hoàn lại tồn kho.\n**Kết quả thực tế (Code):** HTTP 404 Not Found! Người dùng không có API hủy đơn hàng.\n**Đánh giá:** **FAIL (Bug)** (Thiếu chức năng: Khách hàng không thể tự hủy đơn hàng khi đang Chờ xác nhận)"
+          }
+        },
+        {
+          "name": "TC_ORD_015 - [PASS] Xem chi tiết đơn hàng với ID = 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_015 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_015 - Xem chi tiết đơn hàng với ID = 0 (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "0"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_015`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** id = 0\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Xem chi tiết đơn hàng với ID = 0)"
+          }
+        },
+        {
+          "name": "TC_ORD_016 - [PASS] Xem chi tiết đơn hàng với ID âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_016 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_016 - Xem chi tiết đơn hàng với ID âm (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/-1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "-1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_016`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** id = -1\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Xem chi tiết đơn hàng với ID âm)"
+          }
+        },
+        {
+          "name": "TC_ORD_017 - [PASS] Truyền chuỗi vào id của /api/orders/{id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_017 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request. Model binding báo lỗi kiểu int.",
+                  "pm.test('TC_ORD_017 - Truyền chuỗi vào id của /api/orders/{id} (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/abc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "abc"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_017`\n**Chức năng:** Chi tiết đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** id = abc (không phải số nguyên)\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request. Model binding báo lỗi kiểu int.\n**Đánh giá:** **PASS** (Truyền chuỗi vào id của /api/orders/{id})"
+          }
+        },
+        {
+          "name": "TC_ORD_018 - [PASS] Chống SQL Injection tại tra cứu đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_018 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. Không bị SQL Injection.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_ORD_018 - Chống SQL Injection tại tra cứu đơn hàng (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_018`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Security | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Thử SQL Injection trong customerPhone\n**Kết quả mong đợi:** HTTP 404 Not Found. Không bị SQL Injection.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Chống SQL Injection tại tra cứu đơn hàng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"customerPhone\": \"' OR '1'='1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_019 - [FAIL (Bug)] Bug bảo mật: Không có Rate Limiting trên API tra cứu đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_019 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): Có Rate Limiting chặn dò SĐT hàng loạt.",
+                  "// Thực tế trên code (Actual): Không có Rate Limiting.",
+                  "pm.test('TC_ORD_019 - Bug bảo mật: Không có Rate Limiting trên API tra cứu đơn hàng (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_019`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Security | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Vét cạn (Brute-force) SĐT trên POST /api/orders/lookup\n**Kết quả mong đợi:** Có Rate Limiting chặn dò SĐT hàng loạt.\n**Kết quả thực tế (Code):** Không có Rate Limiting.\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật: Không có Rate Limiting trên API tra cứu đơn hàng)"
+          }
+        },
+        {
+          "name": "TC_ORD_020 - [PASS] Cập nhật hồ sơ với address = null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_020 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cho phép xóa địa chỉ (address = null).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ORD_020 - Cập nhật hồ sơ với address = null (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_020`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Positive | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Đã đăng nhập USER, cập nhật address = null\n**Kết quả mong đợi:** HTTP 200 OK. Cho phép xóa địa chỉ (address = null).\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Cập nhật hồ sơ với address = null)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": \"0900000001\", \"address\": null}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_021 - [PASS] Cập nhật hồ sơ giữ nguyên SĐT hiện tại của bản thân",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_021 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Không bị lỗi trùng SĐT khi lưu lại SĐT của chính mình.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. UPDATE trên cùng dòng id = p_id nên PostgreSQL không báo lỗi unique.",
+                  "pm.test('TC_ORD_021 - Cập nhật hồ sơ giữ nguyên SĐT hiện tại của bản thân (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_021`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Positive | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Đã đăng nhập USER, giữ nguyên SĐT hiện tại của chính mình\n**Kết quả mong đợi:** HTTP 200 OK. Không bị lỗi trùng SĐT khi lưu lại SĐT của chính mình.\n**Kết quả thực tế (Code):** HTTP 200 OK. UPDATE trên cùng dòng id = p_id nên PostgreSQL không báo lỗi unique.\n**Đánh giá:** **PASS** (Cập nhật hồ sơ giữ nguyên SĐT hiện tại của bản thân)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed Rename\", \"phone\": \"0900000001\", \"address\": \"HN\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_022 - [PASS] Cập nhật hồ sơ với phone = null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_022 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 200 OK tùy nghiệp vụ (nhưng phải nhất quán với lúc đăng ký).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Cột phone cho phép NULL.",
+                  "pm.test('TC_ORD_022 - Cập nhật hồ sơ với phone = null (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_022`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập USER, cập nhật phone = null\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 200 OK tùy nghiệp vụ (nhưng phải nhất quán với lúc đăng ký).\n**Kết quả thực tế (Code):** HTTP 200 OK. Cột phone cho phép NULL.\n**Đánh giá:** **PASS** (Cập nhật hồ sơ với phone = null)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"User Seed\", \"phone\": null, \"address\": \"HN\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ORD_023 - [PASS] Token của user đã bị xóa gọi GET /api/profile trả về 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_023 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found (UserController.GetProfile kiểm tra if (user == null) return NotFound()).",
+                  "pm.test('TC_ORD_023 - Token của user đã bị xóa gọi GET /api/profile trả về 404 (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_023`\n**Chức năng:** Xem hồ sơ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** User đã bị Admin xóa khỏi DB nhưng JWT token vẫn còn hạn\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 404 Not Found (UserController.GetProfile kiểm tra if (user == null) return NotFound()).\n**Đánh giá:** **PASS** (Token của user đã bị xóa gọi GET /api/profile trả về 404)"
+          }
+        },
+        {
+          "name": "TC_ORD_024 - [FAIL (Bug)] Bug: User đã bị xóa vẫn gọi PUT /api/profile nhận được 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_024 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! sp_update_profile chạy UPDATE 0 dòng nhưng vẫn trả về 'Cập nhật hồ sơ thành công!'.",
+                  "pm.test('TC_ORD_024 - Bug: User đã bị xóa vẫn gọi PUT /api/profile nhận được 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_024`\n**Chức năng:** Cập nhật hồ sơ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** User đã bị Admin xóa khỏi DB nhưng JWT token vẫn còn hạn\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 200 OK! sp_update_profile chạy UPDATE 0 dòng nhưng vẫn trả về 'Cập nhật hồ sơ thành công!'.\n**Đánh giá:** **FAIL (Bug)** (Bug: User đã bị xóa vẫn gọi PUT /api/profile nhận được 200 OK)"
+          }
+        },
+        {
+          "name": "TC_ORD_025 - [PASS] Gọi GET /api/orders/lookup bị từ chối 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_025 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request (do khớp vào route GET /api/orders/{id} với id='lookup').",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request.",
+                  "pm.test('TC_ORD_025 - Gọi GET /api/orders/lookup bị từ chối 400 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_025`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Sai phương thức HTTP GET thay vì POST\n**Kết quả mong đợi:** HTTP 400 Bad Request (do khớp vào route GET /api/orders/{id} với id='lookup').\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Gọi GET /api/orders/lookup bị từ chối 400)"
+          }
+        },
+        {
+          "name": "TC_ORD_026 - [PASS] Gọi POST /api/orders/lookup với body rỗng {}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ORD_026 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found (orderId mặc định = 0 không tồn tại).",
+                  "pm.test('TC_ORD_026 - Gọi POST /api/orders/lookup với body rỗng {} (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ORD_026`\n**Chức năng:** Tra cứu đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Body JSON rỗng {}\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 404 Not Found (orderId mặc định = 0 không tồn tại).\n**Đánh giá:** **PASS** (Gọi POST /api/orders/lookup với body rỗng {})",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

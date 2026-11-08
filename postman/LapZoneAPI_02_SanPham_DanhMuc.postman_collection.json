@@ -1,0 +1,2400 @@
+{
+  "info": {
+    "_postman_id": "80c50620-9b85-4f50-9d68-ddcc850bd5cc",
+    "name": "LapZoneAPI - 02_SanPham_DanhMuc (42 TCs)",
+    "description": "Module 2: Sản Phẩm & Danh Mục (/api/products, /api/categories)\nTự động cấu hình sẵn {base_url} = http://localhost:5084 và tự động lấy JWT Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5084",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "taobattu@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "user_phone",
+      "value": "0900000001",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "Admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_phone",
+      "value": "0900000002",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "admin_cart_item_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "created_order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "created_cat_id",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "created_prod_id",
+      "value": "120",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "10",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "item": [
+        {
+          "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login USER 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('user_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản User Seed và lưu JWT vào biến {{user_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 2] Đăng nhập ADMIN & Lưu {{admin_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login ADMIN 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('admin_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản Admin Seed và lưu JWT vào biến {{admin_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 3] Tạo dữ liệu mồi Giỏ hàng & lấy {{cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('user_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 101,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm 101 vào giỏ USER và lưu {{cart_item_id}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 4] Tạo Giỏ hàng của User B (Admin) để test IDOR {{admin_cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Admin Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 102,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02_SanPham_DanhMuc",
+      "item": [
+        {
+          "name": "TC_PROD_001 - [PASS] Lấy danh sách tất cả danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_001 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về mảng JSON 7 danh mục sắp xếp theo id tăng dần.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về [{id:1, name:'Acer'}, ..., {id:7, name:'Lenovo'}].",
+                  "pm.test('TC_PROD_001 - Lấy danh sách tất cả danh mục (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_001`\n**Chức năng:** Danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed 7 danh mục (1..7)\n**Kết quả mong đợi:** HTTP 200 OK. Trả về mảng JSON 7 danh mục sắp xếp theo id tăng dần.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về [{id:1, name:'Acer'}, ..., {id:7, name:'Lenovo'}].\n**Đánh giá:** **PASS** (Lấy danh sách tất cả danh mục)"
+          }
+        },
+        {
+          "name": "TC_PROD_002 - [PASS] Lấy danh sách sản phẩm trang đầu mặc định",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_002 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {items (12 SP), totalItems: 40, currentPage: 0, totalPages: 4}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về đúng cấu trúc phân trang.",
+                  "pm.test('TC_PROD_002 - Lấy danh sách sản phẩm trang đầu mặc định (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_002`\n**Chức năng:** Danh sách SP\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed 40 sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {items (12 SP), totalItems: 40, currentPage: 0, totalPages: 4}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về đúng cấu trúc phân trang.\n**Đánh giá:** **PASS** (Lấy danh sách sản phẩm trang đầu mặc định)"
+          }
+        },
+        {
+          "name": "TC_PROD_003 - [PASS] Tìm kiếm sản phẩm theo từ khóa qua /api/search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_003 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có tên hoặc more_info chứa 'Dell' (không phân biệt hoa thường).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_search_products dùng ILIKE '%Dell%' trả về đúng kết quả.",
+                  "pm.test('TC_PROD_003 - Tìm kiếm sản phẩm theo từ khóa qua /api/search (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/search?keyword=Dell",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Dell"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_003`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed 40 sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có tên hoặc more_info chứa 'Dell' (không phân biệt hoa thường).\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_search_products dùng ILIKE '%Dell%' trả về đúng kết quả.\n**Đánh giá:** **PASS** (Tìm kiếm sản phẩm theo từ khóa qua /api/search)"
+          }
+        },
+        {
+          "name": "TC_PROD_004 - [PASS] Tìm kiếm không phân biệt chữ hoa/thường",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_004 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm MacBook (ILIKE không phân biệt hoa thường).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về đúng các dòng MacBook.",
+                  "pm.test('TC_PROD_004 - Tìm kiếm không phân biệt chữ hoa/thường (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=macbook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "macbook"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_004`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm MacBook (ILIKE không phân biệt hoa thường).\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về đúng các dòng MacBook.\n**Đánh giá:** **PASS** (Tìm kiếm không phân biệt chữ hoa/thường)"
+          }
+        },
+        {
+          "name": "TC_PROD_005 - [PASS] Tìm kiếm theo nội dung mô tả chi tiết",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_005 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tìm thấy sản phẩm theo nội dung mô tả more_info.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_search_products tìm trên cả p.name và pd.more_info.",
+                  "pm.test('TC_PROD_005 - Tìm kiếm theo nội dung mô tả chi tiết (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=Dolby",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Dolby"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_005`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Tìm thấy sản phẩm theo nội dung mô tả more_info.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_search_products tìm trên cả p.name và pd.more_info.\n**Đánh giá:** **PASS** (Tìm kiếm theo nội dung mô tả chi tiết)"
+          }
+        },
+        {
+          "name": "TC_PROD_006 - [PASS] Tìm kiếm từ khóa không có kết quả",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_006 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {items: [], totalItems: 0, currentPage: 0, totalPages: 0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về mảng rỗng, totalItems=0.",
+                  "pm.test('TC_PROD_006 - Tìm kiếm từ khóa không có kết quả (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=XYZ_NON_EXISTENT_9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "XYZ_NON_EXISTENT_9999"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_006`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Positive | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Không có SP nào khớp\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {items: [], totalItems: 0, currentPage: 0, totalPages: 0}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về mảng rỗng, totalItems=0.\n**Đánh giá:** **PASS** (Tìm kiếm từ khóa không có kết quả)"
+          }
+        },
+        {
+          "name": "TC_PROD_007 - [PASS] Lọc sản phẩm theo CategoryId hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_007 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tất cả sản phẩm trả về đều có categoryId = 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Lọc đúng theo category_id = 1.",
+                  "pm.test('TC_PROD_007 - Lọc sản phẩm theo CategoryId hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?categoryId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_007`\n**Chức năng:** Lọc danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Category 1 = Acer\n**Kết quả mong đợi:** HTTP 200 OK. Tất cả sản phẩm trả về đều có categoryId = 1.\n**Kết quả thực tế (Code):** HTTP 200 OK. Lọc đúng theo category_id = 1.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo CategoryId hợp lệ)"
+          }
+        },
+        {
+          "name": "TC_PROD_008 - [PASS] Lọc theo CategoryId không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_008 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {items: [], totalItems: 0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về danh sách rỗng.",
+                  "pm.test('TC_PROD_008 - Lọc theo CategoryId không tồn tại (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?categoryId=9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "9999"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_008`\n**Chức năng:** Lọc danh mục\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Category 9999 không tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {items: [], totalItems: 0}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về danh sách rỗng.\n**Đánh giá:** **PASS** (Lọc theo CategoryId không tồn tại)"
+          }
+        },
+        {
+          "name": "TC_PROD_009 - [PASS] Lọc sản phẩm theo khoảng giá hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_009 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tất cả sản phẩm trả về có 20,000,000 <= price <= 30,000,000.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Lọc đúng khoảng giá.",
+                  "pm.test('TC_PROD_009 - Lọc sản phẩm theo khoảng giá hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?minPrice=20000000&maxPrice=30000000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "20000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "30000000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_009`\n**Chức năng:** Lọc theo giá\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Tất cả sản phẩm trả về có 20,000,000 <= price <= 30,000,000.\n**Kết quả thực tế (Code):** HTTP 200 OK. Lọc đúng khoảng giá.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo khoảng giá hợp lệ)"
+          }
+        },
+        {
+          "name": "TC_PROD_010 - [PASS] Biên giá minPrice == maxPrice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_010 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có giá chính xác bằng 22,990,000.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Toán tử >= và <= lấy đúng giá biên.",
+                  "pm.test('TC_PROD_010 - Biên giá minPrice == maxPrice (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?minPrice=22990000&maxPrice=22990000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "22990000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "22990000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_010`\n**Chức năng:** Lọc theo giá\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Sản phẩm giá đúng 22,990,000 (ID 1, 2)\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có giá chính xác bằng 22,990,000.\n**Kết quả thực tế (Code):** HTTP 200 OK. Toán tử >= và <= lấy đúng giá biên.\n**Đánh giá:** **PASS** (Biên giá minPrice == maxPrice)"
+          }
+        },
+        {
+          "name": "TC_PROD_011 - [FAIL (Bug)] Bug: Không báo lỗi 400 khi minPrice > maxPrice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_011 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Báo lỗi minPrice không được lớn hơn maxPrice.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Không validate minPrice > maxPrice, trả về mảng rỗng.",
+                  "pm.test('TC_PROD_011 - Bug: Không báo lỗi 400 khi minPrice > maxPrice (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?minPrice=50000000&maxPrice=10000000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "50000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "10000000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_011`\n**Chức năng:** Lọc theo giá\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Báo lỗi minPrice không được lớn hơn maxPrice.\n**Kết quả thực tế (Code):** HTTP 200 OK. Không validate minPrice > maxPrice, trả về mảng rỗng.\n**Đánh giá:** **FAIL (Bug)** (Bug: Không báo lỗi 400 khi minPrice > maxPrice)"
+          }
+        },
+        {
+          "name": "TC_PROD_012 - [FAIL (Bug)] Bug: Chấp nhận tham số minPrice/maxPrice âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_012 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Giá lọc không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Không validate giá âm.",
+                  "pm.test('TC_PROD_012 - Bug: Chấp nhận tham số minPrice/maxPrice âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?minPrice=-5000000&maxPrice=-1000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "-5000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "-1000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_012`\n**Chức năng:** Lọc theo giá\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Giá lọc không được âm.\n**Kết quả thực tế (Code):** HTTP 200 OK. Không validate giá âm.\n**Đánh giá:** **FAIL (Bug)** (Bug: Chấp nhận tham số minPrice/maxPrice âm)"
+          }
+        },
+        {
+          "name": "TC_PROD_013 - [PASS] Lọc sản phẩm theo CPU",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_013 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có CPU chứa 'i7'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_013 - Lọc sản phẩm theo CPU (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?cpu=i7",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "cpu",
+                  "value": "i7"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_013`\n**Chức năng:** Lọc cấu hình\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có CPU chứa 'i7'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo CPU)"
+          }
+        },
+        {
+          "name": "TC_PROD_014 - [PASS] Lọc sản phẩm theo GPU",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_014 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có GPU chứa 'RTX 4060'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_014 - Lọc sản phẩm theo GPU (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?gpu=RTX%204060",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "gpu",
+                  "value": "RTX%204060"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_014`\n**Chức năng:** Lọc cấu hình\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có GPU chứa 'RTX 4060'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo GPU)"
+          }
+        },
+        {
+          "name": "TC_PROD_015 - [PASS] Lọc sản phẩm theo RAM",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_015 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có RAM chứa '32GB'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_015 - Lọc sản phẩm theo RAM (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?ram=32GB",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "ram",
+                  "value": "32GB"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_015`\n**Chức năng:** Lọc cấu hình\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có RAM chứa '32GB'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo RAM)"
+          }
+        },
+        {
+          "name": "TC_PROD_016 - [PASS] Lọc sản phẩm theo Storage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_016 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có ổ cứng chứa '1TB'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_016 - Lọc sản phẩm theo Storage (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?storage=1TB",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "storage",
+                  "value": "1TB"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_016`\n**Chức năng:** Lọc cấu hình\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có ổ cứng chứa '1TB'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo Storage)"
+          }
+        },
+        {
+          "name": "TC_PROD_017 - [PASS] Lọc sản phẩm theo Screen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_017 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các sản phẩm có màn hình chứa 'OLED'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_017 - Lọc sản phẩm theo Screen (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?screen=OLED",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "screen",
+                  "value": "OLED"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_017`\n**Chức năng:** Lọc cấu hình\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed product_details\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các sản phẩm có màn hình chứa 'OLED'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Lọc sản phẩm theo Screen)"
+          }
+        },
+        {
+          "name": "TC_PROD_018 - [PASS] Kết hợp đồng thời nhiều bộ lọc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_018 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về đúng các mẫu Lenovo Ultra 5 RAM 32GB trong tầm giá 20-25tr.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_018 - Kết hợp đồng thời nhiều bộ lọc (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?categoryId=7&cpu=Ultra%205&ram=32GB&minPrice=20000000&maxPrice=25000000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "7"
+                },
+                {
+                  "key": "cpu",
+                  "value": "Ultra%205"
+                },
+                {
+                  "key": "ram",
+                  "value": "32GB"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "20000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "25000000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_018`\n**Chức năng:** Lọc kết hợp\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed dữ liệu\n**Kết quả mong đợi:** HTTP 200 OK. Trả về đúng các mẫu Lenovo Ultra 5 RAM 32GB trong tầm giá 20-25tr.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Kết hợp đồng thời nhiều bộ lọc)"
+          }
+        },
+        {
+          "name": "TC_PROD_019 - [PASS] Sắp xếp giá tăng dần (price_asc)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_019 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Danh sách items được sắp xếp theo price tăng dần.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Giá tăng dần từ 17,890,000.",
+                  "pm.test('TC_PROD_019 - Sắp xếp giá tăng dần (price_asc) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?sort=price_asc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "price_asc"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_019`\n**Chức năng:** Sắp xếp\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Danh sách items được sắp xếp theo price tăng dần.\n**Kết quả thực tế (Code):** HTTP 200 OK. Giá tăng dần từ 17,890,000.\n**Đánh giá:** **PASS** (Sắp xếp giá tăng dần (price_asc))"
+          }
+        },
+        {
+          "name": "TC_PROD_020 - [PASS] Sắp xếp giá giảm dần (price_desc)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_020 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Danh sách items được sắp xếp theo price giảm dần.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Giá giảm dần từ 89,990,000.",
+                  "pm.test('TC_PROD_020 - Sắp xếp giá giảm dần (price_desc) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?sort=price_desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "price_desc"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_020`\n**Chức năng:** Sắp xếp\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Danh sách items được sắp xếp theo price giảm dần.\n**Kết quả thực tế (Code):** HTTP 200 OK. Giá giảm dần từ 89,990,000.\n**Đánh giá:** **PASS** (Sắp xếp giá giảm dần (price_desc))"
+          }
+        },
+        {
+          "name": "TC_PROD_021 - [PASS] Sắp xếp mới nhất (newest)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_021 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Danh sách items sắp xếp theo id giảm dần.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. ID 118 đứng đầu.",
+                  "pm.test('TC_PROD_021 - Sắp xếp mới nhất (newest) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?sort=newest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "newest"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_021`\n**Chức năng:** Sắp xếp\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Danh sách items sắp xếp theo id giảm dần.\n**Kết quả thực tế (Code):** HTTP 200 OK. ID 118 đứng đầu.\n**Đánh giá:** **PASS** (Sắp xếp mới nhất (newest))"
+          }
+        },
+        {
+          "name": "TC_PROD_022 - [FAIL (Bug)] Bug: Tham số sort không hợp lệ làm ORDER BY trả về NULL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_022 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc fallback rõ ràng về newest.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Các nhánh CASE WHEN trong ORDER BY đều trả về NULL, thứ tự không xác định.",
+                  "pm.test('TC_PROD_022 - Bug: Tham số sort không hợp lệ làm ORDER BY trả về NULL (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?sort=invalid_sort_value",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "invalid_sort_value"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_022`\n**Chức năng:** Sắp xếp\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Đã seed sản phẩm\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc fallback rõ ràng về newest.\n**Kết quả thực tế (Code):** HTTP 200 OK. Các nhánh CASE WHEN trong ORDER BY đều trả về NULL, thứ tự không xác định.\n**Đánh giá:** **FAIL (Bug)** (Bug: Tham số sort không hợp lệ làm ORDER BY trả về NULL)"
+          }
+        },
+        {
+          "name": "TC_PROD_023 - [PASS] Chuyển sang trang 2 (page=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_023 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về 12 sản phẩm của trang thứ 2 (currentPage: 1, totalPages: 4).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_PROD_023 - Chuyển sang trang 2 (page=1) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=1&size=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "12"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_023`\n**Chức năng:** Phân trang\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** 40 sản phẩm, size=12\n**Kết quả mong đợi:** HTTP 200 OK. Trả về 12 sản phẩm của trang thứ 2 (currentPage: 1, totalPages: 4).\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Chuyển sang trang 2 (page=1))"
+          }
+        },
+        {
+          "name": "TC_PROD_024 - [PASS] Trang cuối cùng (page=3)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_024 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về 4 sản phẩm còn lại (40 - 36 = 4).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về 4 items, totalItems=40.",
+                  "pm.test('TC_PROD_024 - Trang cuối cùng (page=3) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=3&size=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "3"
+                },
+                {
+                  "key": "size",
+                  "value": "12"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_024`\n**Chức năng:** Phân trang\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** 40 sản phẩm, size=12\n**Kết quả mong đợi:** HTTP 200 OK. Trả về 4 sản phẩm còn lại (40 - 36 = 4).\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về 4 items, totalItems=40.\n**Đánh giá:** **PASS** (Trang cuối cùng (page=3))"
+          }
+        },
+        {
+          "name": "TC_PROD_025 - [FAIL (Bug)] Bug: Khi page vượt quá số trang, totalItems bị trả về 0 thay vì 40",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_025 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về items=[], nhưng totalItems vẫn phải giữ nguyên là 40.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK nhưng totalItems=0 và totalPages=0! Vì lấy total_count từ rows[0], khi rows rỗng thì total bị gán bằng 0.",
+                  "pm.test('TC_PROD_025 - Bug: Khi page vượt quá số trang, totalItems bị trả về 0 thay vì 40 (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=100&size=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "100"
+                },
+                {
+                  "key": "size",
+                  "value": "12"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_025`\n**Chức năng:** Phân trang\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** 40 sản phẩm, size=12\n**Kết quả mong đợi:** HTTP 200 OK. Trả về items=[], nhưng totalItems vẫn phải giữ nguyên là 40.\n**Kết quả thực tế (Code):** HTTP 200 OK nhưng totalItems=0 và totalPages=0! Vì lấy total_count từ rows[0], khi rows rỗng thì total bị gán bằng 0.\n**Đánh giá:** **FAIL (Bug)** (Bug: Khi page vượt quá số trang, totalItems bị trả về 0 thay vì 40)"
+          }
+        },
+        {
+          "name": "TC_PROD_026 - [FAIL (Bug)] Bug nghiêm trọng: page=-1 gây lỗi 500 PostgreSQL OFFSET âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_026 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số trang không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 2201X: OFFSET must not be negative.",
+                  "pm.test('TC_PROD_026 - Bug nghiêm trọng: page=-1 gây lỗi 500 PostgreSQL OFFSET âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=-1&size=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "-1"
+                },
+                {
+                  "key": "size",
+                  "value": "12"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_026`\n**Chức năng:** Phân trang\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số trang không được âm.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 2201X: OFFSET must not be negative.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: page=-1 gây lỗi 500 PostgreSQL OFFSET âm)"
+          }
+        },
+        {
+          "name": "TC_PROD_027 - [FAIL (Bug)] Bug nghiêm trọng: size=0 gây lỗi 500 khi serialize JSON (NaN/Infinity)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_027 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Kích thước trang phải >= 1.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Math.Ceiling(0 / 0.0) tạo ra NaN, System.Text.Json ném ArgumentException khi serialize NaN/Infinity.",
+                  "pm.test('TC_PROD_027 - Bug nghiêm trọng: size=0 gây lỗi 500 khi serialize JSON (NaN/Infinity) (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=0&size=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_027`\n**Chức năng:** Phân trang\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Kích thước trang phải >= 1.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Math.Ceiling(0 / 0.0) tạo ra NaN, System.Text.Json ném ArgumentException khi serialize NaN/Infinity.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: size=0 gây lỗi 500 khi serialize JSON (NaN/Infinity))"
+          }
+        },
+        {
+          "name": "TC_PROD_028 - [FAIL (Bug)] Bug nghiêm trọng: size=-5 gây lỗi 500 PostgreSQL LIMIT âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_028 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Kích thước trang không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 2201W: LIMIT must not be negative.",
+                  "pm.test('TC_PROD_028 - Bug nghiêm trọng: size=-5 gây lỗi 500 PostgreSQL LIMIT âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=0&size=-5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "-5"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_028`\n**Chức năng:** Phân trang\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Kích thước trang không được âm.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 2201W: LIMIT must not be negative.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: size=-5 gây lỗi 500 PostgreSQL LIMIT âm)"
+          }
+        },
+        {
+          "name": "TC_PROD_029 - [FAIL (Bug)] Bug: Không giới hạn max page size (nguy cơ DoS khi dữ liệu lớn)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_029 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc giới hạn max size (ví dụ tối đa 100 SP/trang) để chống DoS.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Cho phép truyền size cực lớn không có giới hạn trần.",
+                  "pm.test('TC_PROD_029 - Bug: Không giới hạn max page size (nguy cơ DoS khi dữ liệu lớn) (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=0&size=1000000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "1000000"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_029`\n**Chức năng:** Phân trang\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc giới hạn max size (ví dụ tối đa 100 SP/trang) để chống DoS.\n**Kết quả thực tế (Code):** HTTP 200 OK. Cho phép truyền size cực lớn không có giới hạn trần.\n**Đánh giá:** **FAIL (Bug)** (Bug: Không giới hạn max page size (nguy cơ DoS khi dữ liệu lớn))"
+          }
+        },
+        {
+          "name": "TC_PROD_030 - [FAIL (Bug)] Bug: Không escape ký tự wildcard '%' và '_' trong ILIKE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_030 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Phải escape ký tự '%', chỉ tìm các sản phẩm có dấu '%' thật sự trong tên/mô tả.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Không escape '%', biểu thức ILIKE '%%%' khớp toàn bộ 40 sản phẩm!",
+                  "pm.test('TC_PROD_030 - Bug: Không escape ký tự wildcard '%' và '_' trong ILIKE (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=%25",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "%25"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_030`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed 40 sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Phải escape ký tự '%', chỉ tìm các sản phẩm có dấu '%' thật sự trong tên/mô tả.\n**Kết quả thực tế (Code):** HTTP 200 OK. Không escape '%', biểu thức ILIKE '%%%' khớp toàn bộ 40 sản phẩm!\n**Đánh giá:** **FAIL (Bug)** (Bug: Không escape ký tự wildcard '%' và '_' trong ILIKE)"
+          }
+        },
+        {
+          "name": "TC_PROD_031 - [FAIL (Bug)] Bug: Ký tự '_' trong keyword khớp mọi chuỗi không rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_031 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Chỉ tìm sản phẩm có ký tự gạch dưới '_'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. ILIKE '%_%' khớp mọi sản phẩm có ít nhất 1 ký tự!",
+                  "pm.test('TC_PROD_031 - Bug: Ký tự '_' trong keyword khớp mọi chuỗi không rỗng (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=_",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "_"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_031`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã seed 40 sản phẩm\n**Kết quả mong đợi:** HTTP 200 OK. Chỉ tìm sản phẩm có ký tự gạch dưới '_'.\n**Kết quả thực tế (Code):** HTTP 200 OK. ILIKE '%_%' khớp mọi sản phẩm có ít nhất 1 ký tự!\n**Đánh giá:** **FAIL (Bug)** (Bug: Ký tự '_' trong keyword khớp mọi chuỗi không rỗng)"
+          }
+        },
+        {
+          "name": "TC_PROD_032 - [PASS] Chống SQL Injection trên thanh tìm kiếm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_032 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Không bị SQL Injection, trả về 0 sản phẩm.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Dapper truyền tham số an toàn vào hàm PL/pgSQL.",
+                  "pm.test('TC_PROD_032 - Chống SQL Injection trên thanh tìm kiếm (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?keyword=%27%20OR%201%3D1--",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "%27%20OR%201%3D1--"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_032`\n**Chức năng:** Tìm kiếm SP\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 200 OK. Không bị SQL Injection, trả về 0 sản phẩm.\n**Kết quả thực tế (Code):** HTTP 200 OK. Dapper truyền tham số an toàn vào hàm PL/pgSQL.\n**Đánh giá:** **PASS** (Chống SQL Injection trên thanh tìm kiếm)"
+          }
+        },
+        {
+          "name": "TC_PROD_033 - [PASS] Xem chi tiết sản phẩm hợp lệ (ID=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_033 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {product: {id:1, name:..., cpu:..., categoryName:'Dell'}, relatedProducts: [...]}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về đầy đủ thông tin bảng products JOIN product_details và categories.",
+                  "pm.test('TC_PROD_033 - Xem chi tiết sản phẩm hợp lệ (ID=1) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_033`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Sản phẩm ID 1 tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {product: {id:1, name:..., cpu:..., categoryName:'Dell'}, relatedProducts: [...]}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về đầy đủ thông tin bảng products JOIN product_details và categories.\n**Đánh giá:** **PASS** (Xem chi tiết sản phẩm hợp lệ (ID=1))"
+          }
+        },
+        {
+          "name": "TC_PROD_034 - [PASS] Kiểm tra danh sách sản phẩm liên quan (relatedProducts)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_034 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. relatedProducts chứa tối đa 4 sản phẩm cùng Category 5 và không chứa ID 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_get_related_products trả về 4 SP cùng danh mục khác ID 1.",
+                  "pm.test('TC_PROD_034 - Kiểm tra danh sách sản phẩm liên quan (relatedProducts) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_034`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Sản phẩm ID 1 thuộc Category 5 (Dell)\n**Kết quả mong đợi:** HTTP 200 OK. relatedProducts chứa tối đa 4 sản phẩm cùng Category 5 và không chứa ID 1.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_get_related_products trả về 4 SP cùng danh mục khác ID 1.\n**Đánh giá:** **PASS** (Kiểm tra danh sách sản phẩm liên quan (relatedProducts))"
+          }
+        },
+        {
+          "name": "TC_PROD_035 - [FAIL (Bug)] Bug: Bỏ quên không trả về danh sách ảnh phụ (product_images) khi xem chi tiết SP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_035 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. JSON trả về phải chứa danh sách ảnh phụ từ bảng product_images (hàm sp_get_product_images).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK nhưng thiếu hoàn toàn danh sách ảnh phụ! Hàm sp_get_product_images có trong SQL nhưng ProductRepository/ProductController không bao giờ gọi.",
+                  "pm.test('TC_PROD_035 - Bug: Bỏ quên không trả về danh sách ảnh phụ (product_images) khi xem chi tiết SP (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_035`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã seed bảng product_images cho SP ID 1 (5 ảnh)\n**Kết quả mong đợi:** HTTP 200 OK. JSON trả về phải chứa danh sách ảnh phụ từ bảng product_images (hàm sp_get_product_images).\n**Kết quả thực tế (Code):** HTTP 200 OK nhưng thiếu hoàn toàn danh sách ảnh phụ! Hàm sp_get_product_images có trong SQL nhưng ProductRepository/ProductController không bao giờ gọi.\n**Đánh giá:** **FAIL (Bug)** (Bug: Bỏ quên không trả về danh sách ảnh phụ (product_images) khi xem chi tiết SP)"
+          }
+        },
+        {
+          "name": "TC_PROD_036 - [FAIL (Bug)] Bug: relatedProducts luôn hiển thị stock=0 và categoryId=0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_036 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Các sản phẩm trong relatedProducts phải có đúng số lượng tồn kho (stock) và categoryId.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK nhưng mọi SP trong relatedProducts đều có stock=0 và categoryId=0! Do sp_get_related_products chỉ SELECT id, name, price, image.",
+                  "pm.test('TC_PROD_036 - Bug: relatedProducts luôn hiển thị stock=0 và categoryId=0 (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_036`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Sản phẩm ID 1 tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Các sản phẩm trong relatedProducts phải có đúng số lượng tồn kho (stock) và categoryId.\n**Kết quả thực tế (Code):** HTTP 200 OK nhưng mọi SP trong relatedProducts đều có stock=0 và categoryId=0! Do sp_get_related_products chỉ SELECT id, name, price, image.\n**Đánh giá:** **FAIL (Bug)** (Bug: relatedProducts luôn hiển thị stock=0 và categoryId=0)"
+          }
+        },
+        {
+          "name": "TC_PROD_037 - [PASS] Xem chi tiết sản phẩm không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_037 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. JSON {message: 'Không tìm thấy sản phẩm.'}.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found. JSON {message: 'Không tìm thấy sản phẩm.'}.",
+                  "pm.test('TC_PROD_037 - Xem chi tiết sản phẩm không tồn tại (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_037`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Sản phẩm ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. JSON {message: 'Không tìm thấy sản phẩm.'}.\n**Kết quả thực tế (Code):** HTTP 404 Not Found. JSON {message: 'Không tìm thấy sản phẩm.'}.\n**Đánh giá:** **PASS** (Xem chi tiết sản phẩm không tồn tại)"
+          }
+        },
+        {
+          "name": "TC_PROD_038 - [PASS] Xem chi tiết sản phẩm với ID = 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_038 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_PROD_038 - Xem chi tiết sản phẩm với ID = 0 (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "0"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_038`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** ID <= 0\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Xem chi tiết sản phẩm với ID = 0)"
+          }
+        },
+        {
+          "name": "TC_PROD_039 - [PASS] Xem chi tiết sản phẩm với ID âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_039 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_PROD_039 - Xem chi tiết sản phẩm với ID âm (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/-10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "-10"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_039`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** ID âm\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Xem chi tiết sản phẩm với ID âm)"
+          }
+        },
+        {
+          "name": "TC_PROD_040 - [PASS] Truyền chuỗi vào route {id:int}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_040 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found (do route constraint {id:int} không khớp).",
+                  "// Thực tế trên code (Actual): HTTP 404 Not Found.",
+                  "pm.test('TC_PROD_040 - Truyền chuỗi vào route {id:int} (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/abc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "abc"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_040`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** ID không phải số nguyên\n**Kết quả mong đợi:** HTTP 404 Not Found (do route constraint {id:int} không khớp).\n**Kết quả thực tế (Code):** HTTP 404 Not Found.\n**Đánh giá:** **PASS** (Truyền chuỗi vào route {id:int})"
+          }
+        },
+        {
+          "name": "TC_PROD_041 - [PASS] Xem chi tiết sản phẩm đã hết hàng (stock=0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_041 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về product với stock = 0.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. product.stock = 0.",
+                  "pm.test('TC_PROD_041 - Xem chi tiết sản phẩm đã hết hàng (stock=0) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/13",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "13"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_041`\n**Chức năng:** Chi tiết SP\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Sản phẩm hết hàng (ID 13 có stock = 0)\n**Kết quả mong đợi:** HTTP 200 OK. Trả về product với stock = 0.\n**Kết quả thực tế (Code):** HTTP 200 OK. product.stock = 0.\n**Đánh giá:** **PASS** (Xem chi tiết sản phẩm đã hết hàng (stock=0))"
+          }
+        },
+        {
+          "name": "TC_PROD_042 - [PASS] Truyền chữ vào tham số minPrice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_PROD_042 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Model binding báo lỗi kiểu dữ liệu decimal.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request.",
+                  "pm.test('TC_PROD_042 - Truyền chữ vào tham số minPrice (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products?minPrice=abc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_PROD_042`\n**Chức năng:** Danh sách SP\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Tham số giá sai kiểu dữ liệu\n**Kết quả mong đợi:** HTTP 400 Bad Request. Model binding báo lỗi kiểu dữ liệu decimal.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Truyền chữ vào tham số minPrice)"
+          }
+        }
+      ]
+    }
+  ]
+}

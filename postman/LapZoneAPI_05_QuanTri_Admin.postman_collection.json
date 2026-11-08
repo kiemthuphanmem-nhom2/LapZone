@@ -1,0 +1,2968 @@
+{
+  "info": {
+    "_postman_id": "72bc7750-8142-43cf-ae2e-3eeb538e26bd",
+    "name": "LapZoneAPI - 05_QuanTri_Admin (46 TCs)",
+    "description": "Module 5: Quản Trị Admin (/api/admin/*)\nTự động cấu hình sẵn {base_url} = http://localhost:5084 và tự động lấy JWT Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5084",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "taobattu@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "user_phone",
+      "value": "0900000001",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "Admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_phone",
+      "value": "0900000002",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "admin_cart_item_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "created_order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "created_cat_id",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "created_prod_id",
+      "value": "120",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "10",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "item": [
+        {
+          "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login USER 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('user_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản User Seed và lưu JWT vào biến {{user_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 2] Đăng nhập ADMIN & Lưu {{admin_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login ADMIN 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('admin_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản Admin Seed và lưu JWT vào biến {{admin_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 3] Tạo dữ liệu mồi Giỏ hàng & lấy {{cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('user_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 101,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm 101 vào giỏ USER và lưu {{cart_item_id}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 4] Tạo Giỏ hàng của User B (Admin) để test IDOR {{admin_cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Admin Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 102,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05_QuanTri_Admin",
+      "item": [
+        {
+          "name": "TC_ADM_001 - [PASS] Xem doanh thu tháng hiện tại trên Dashboard Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_001 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về JSON {currentMonthRevenue: >= 0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Gọi hàm sp_current_month_revenue() trả về tổng doanh thu tháng hiện tại.",
+                  "pm.test('TC_ADM_001 - Xem doanh thu tháng hiện tại trên Dashboard Admin (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard/revenue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "revenue"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_001`\n**Chức năng:** Dashboard\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN ({{admin_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về JSON {currentMonthRevenue: >= 0}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Gọi hàm sp_current_month_revenue() trả về tổng doanh thu tháng hiện tại.\n**Đánh giá:** **PASS** (Xem doanh thu tháng hiện tại trên Dashboard Admin)"
+          }
+        },
+        {
+          "name": "TC_ADM_002 - [PASS] Xem thống kê tổng quan Dashboard Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_002 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {currentMonthRevenue, totalOrders, totalUsers, totalProducts}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về đầy đủ 4 chỉ số thống kê.",
+                  "pm.test('TC_ADM_002 - Xem thống kê tổng quan Dashboard Admin (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "stats"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_002`\n**Chức năng:** Dashboard\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN ({{admin_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {currentMonthRevenue, totalOrders, totalUsers, totalProducts}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về đầy đủ 4 chỉ số thống kê.\n**Đánh giá:** **PASS** (Xem thống kê tổng quan Dashboard Admin)"
+          }
+        },
+        {
+          "name": "TC_ADM_003 - [PASS] Chặn USER thường truy cập doanh thu Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_003 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 403 Forbidden.",
+                  "// Thực tế trên code (Actual): HTTP 403 Forbidden.",
+                  "pm.test('TC_ADM_003 - Chặn USER thường truy cập doanh thu Admin (Expected HTTP 403)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard/revenue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "revenue"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_003`\n**Chức năng:** Dashboard\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đăng nhập bằng tài khoản USER ({{user_token}})\n**Kết quả mong đợi:** HTTP 403 Forbidden.\n**Kết quả thực tế (Code):** HTTP 403 Forbidden.\n**Đánh giá:** **PASS** (Chặn USER thường truy cập doanh thu Admin)"
+          }
+        },
+        {
+          "name": "TC_ADM_004 - [PASS] Admin lấy danh sách danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_004 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về danh sách toàn bộ danh mục.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_004 - Admin lấy danh sách danh mục (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_004`\n**Chức năng:** QL Danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Trả về danh sách toàn bộ danh mục.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin lấy danh sách danh mục)"
+          }
+        },
+        {
+          "name": "TC_ADM_005 - [PASS] Admin thêm mới danh mục hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_005 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tạo danh mục mới và trả về {message: 'Lưu danh mục thành công.', id: >0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "if (pm.response.code === 200) {",
+                  "    var j = pm.response.json();",
+                  "    if (j && j.id) pm.collectionVariables.set('created_cat_id', j.id);",
+                  "}",
+                  "pm.test('TC_ADM_005 - Admin thêm mới danh mục hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_005`\n**Chức năng:** QL Danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, tên danh mục chưa tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Tạo danh mục mới và trả về {message: 'Lưu danh mục thành công.', id: >0}.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin thêm mới danh mục hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": null,\n  \"name\": \"MSI Gaming {{$timestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_006 - [PASS] Admin cập nhật tên danh mục hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_006 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cập nhật tên danh mục thành công.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_006 - Admin cập nhật tên danh mục hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_006`\n**Chức năng:** QL Danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, cập nhật tên danh mục vừa tạo\n**Kết quả mong đợi:** HTTP 200 OK. Cập nhật tên danh mục thành công.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin cập nhật tên danh mục hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{created_cat_id}}, \"name\": \"MSI Updated {{$timestamp}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_007 - [FAIL (Bug)] Bug nghiêm trọng: Thêm trùng tên danh mục gây lỗi 500 Unique Constraint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_007 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi tên danh mục đã tồn tại.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 23505: duplicate key value violates unique constraint 'categories_name_key'.",
+                  "pm.test('TC_ADM_007 - Bug nghiêm trọng: Thêm trùng tên danh mục gây lỗi 500 Unique Constraint (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_007`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, tên 'Acer' đã tồn tại\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi tên danh mục đã tồn tại.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 23505: duplicate key value violates unique constraint 'categories_name_key'.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Thêm trùng tên danh mục gây lỗi 500 Unique Constraint)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"Acer\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_008 - [FAIL (Bug)] Bug: Cho phép Admin tạo danh mục với tên rỗng ''",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_008 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Tên danh mục không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CategorySaveDto không có [Required], lưu danh mục có name='' vào DB!",
+                  "pm.test('TC_ADM_008 - Bug: Cho phép Admin tạo danh mục với tên rỗng '' (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_008`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request. Tên danh mục không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! CategorySaveDto không có [Required], lưu danh mục có name='' vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép Admin tạo danh mục với tên rỗng '')",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_009 - [FAIL (Bug)] Bug: Cho phép tạo danh mục chỉ chứa khoảng trắng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_009 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Tên danh mục không được chỉ chứa khoảng trắng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu danh mục có name='    ' vào DB.",
+                  "pm.test('TC_ADM_009 - Bug: Cho phép tạo danh mục chỉ chứa khoảng trắng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_009`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request. Tên danh mục không được chỉ chứa khoảng trắng.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu danh mục có name='    ' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép tạo danh mục chỉ chứa khoảng trắng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"    \"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_010 - [FAIL (Bug)] Bug nghiêm trọng: Cập nhật danh mục ID không tồn tại gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_010 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. Không tìm thấy danh mục cần cập nhật.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! sp_save_category trả về NULL khi UPDATE không khớp dòng nào, làm ExecuteScalarAsync<int> ném ngoại lệ!",
+                  "pm.test('TC_ADM_010 - Bug nghiêm trọng: Cập nhật danh mục ID không tồn tại gây lỗi 500 (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_010`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, truyền id=99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. Không tìm thấy danh mục cần cập nhật.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! sp_save_category trả về NULL khi UPDATE không khớp dòng nào, làm ExecuteScalarAsync<int> ném ngoại lệ!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cập nhật danh mục ID không tồn tại gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": 99999, \"name\": \"Ghost Category\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_011 - [PASS] Admin xóa danh mục trống (chưa có sản phẩm)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_011 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Xóa danh mục thành công.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_011 - Admin xóa danh mục trống (chưa có sản phẩm) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{created_cat_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "{{created_cat_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_011`\n**Chức năng:** QL Danh mục\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Danh mục vừa tạo chưa có sản phẩm nào\n**Kết quả mong đợi:** HTTP 200 OK. Xóa danh mục thành công.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin xóa danh mục trống (chưa có sản phẩm))"
+          }
+        },
+        {
+          "name": "TC_ADM_012 - [FAIL (Bug)] Bug nghiêm trọng: Xóa danh mục đang có sản phẩm gây lỗi 500 FK Violation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_012 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi không thể xóa danh mục đang có sản phẩm.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: update or delete on table 'categories' violates foreign key constraint 'products_category_id_fkey'.",
+                  "pm.test('TC_ADM_012 - Bug nghiêm trọng: Xóa danh mục đang có sản phẩm gây lỗi 500 FK Violation (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_012`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Danh mục ID 1 (Acer) đang có sản phẩm tham chiếu\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 409 Conflict. Báo lỗi không thể xóa danh mục đang có sản phẩm.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: update or delete on table 'categories' violates foreign key constraint 'products_category_id_fkey'.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Xóa danh mục đang có sản phẩm gây lỗi 500 FK Violation)"
+          }
+        },
+        {
+          "name": "TC_ADM_013 - [FAIL (Bug)] Bug: Xóa danh mục không tồn tại vẫn trả về 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_013 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Trả về 'Đã xóa danh mục.' dù ID không tồn tại.",
+                  "pm.test('TC_ADM_013 - Bug: Xóa danh mục không tồn tại vẫn trả về 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_013`\n**Chức năng:** QL Danh mục\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Danh mục ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Trả về 'Đã xóa danh mục.' dù ID không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Xóa danh mục không tồn tại vẫn trả về 200 OK)"
+          }
+        },
+        {
+          "name": "TC_ADM_014 - [PASS] Admin thêm mới sản phẩm hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_014 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tạo mới sản phẩm + product_details, trả về {message: 'Thêm sản phẩm mới thành công.', id: >0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "if (pm.response.code === 200) {",
+                  "    var j = pm.response.json();",
+                  "    if (j && j.id) pm.collectionVariables.set('created_prod_id', j.id);",
+                  "}",
+                  "pm.test('TC_ADM_014 - Admin thêm mới sản phẩm hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_014`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, categoryId=1 tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Tạo mới sản phẩm + product_details, trả về {message: 'Thêm sản phẩm mới thành công.', id: >0}.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin thêm mới sản phẩm hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"Laptop Test Admin\", \"price\": 25000000, \"stock\": 10, \"image\": \"assets/test.jpg\", \"categoryId\": 1, \"cpu\": \"Core i7\", \"ram\": \"16GB\", \"storage\": \"512GB\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_015 - [PASS] Admin cập nhật thông tin sản phẩm hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_015 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cập nhật sản phẩm và thông số kỹ thuật thành công.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_015 - Admin cập nhật thông tin sản phẩm hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_015`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, cập nhật sản phẩm vừa tạo\n**Kết quả mong đợi:** HTTP 200 OK. Cập nhật sản phẩm và thông số kỹ thuật thành công.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin cập nhật thông tin sản phẩm hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{created_prod_id}}, \"name\": \"Laptop Test Admin Updated\", \"price\": 26000000, \"stock\": 15, \"image\": \"assets/test.jpg\", \"categoryId\": 1, \"cpu\": \"Core i9\", \"ram\": \"32GB\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_016 - [FAIL (Bug)] Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có giá bán âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_016 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Giá sản phẩm phải >= 0.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! ProductSaveDto không có [Range], lưu sản phẩm có giá ÂM (-10,000,000đ) vào DB!",
+                  "pm.test('TC_ADM_016 - Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có giá bán âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_016`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, truyền price âm (-10,000,000)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Giá sản phẩm phải >= 0.\n**Kết quả thực tế (Code):** HTTP 200 OK! ProductSaveDto không có [Range], lưu sản phẩm có giá ÂM (-10,000,000đ) vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có giá bán âm)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"Negative Price Laptop\", \"price\": -10000000, \"stock\": 5, \"categoryId\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_017 - [FAIL (Bug)] Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có tồn kho âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_017 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng tồn kho không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu sản phẩm có stock = -50 vào DB!",
+                  "pm.test('TC_ADM_017 - Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có tồn kho âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_017`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, truyền stock âm (-50)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng tồn kho không được âm.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu sản phẩm có stock = -50 vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cho phép Admin tạo sản phẩm có tồn kho âm)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"Negative Stock Laptop\", \"price\": 15000000, \"stock\": -50, \"categoryId\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_018 - [FAIL (Bug)] Bug: Cho phép tạo sản phẩm không có tên (name='')",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_018 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Tên sản phẩm không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu sản phẩm có name='' vào DB!",
+                  "pm.test('TC_ADM_018 - Bug: Cho phép tạo sản phẩm không có tên (name='') (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_018`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, truyền name rỗng\n**Kết quả mong đợi:** HTTP 400 Bad Request. Tên sản phẩm không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu sản phẩm có name='' vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép tạo sản phẩm không có tên (name=''))",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"\", \"price\": 15000000, \"stock\": 5, \"categoryId\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_019 - [FAIL (Bug)] Bug nghiêm trọng: Tạo sản phẩm với categoryId không tồn tại gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_019 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Danh mục không tồn tại.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: violates foreign key constraint 'products_category_id_fkey'.",
+                  "pm.test('TC_ADM_019 - Bug nghiêm trọng: Tạo sản phẩm với categoryId không tồn tại gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_019`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, truyền categoryId = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 400 Bad Request. Danh mục không tồn tại.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: violates foreign key constraint 'products_category_id_fkey'.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Tạo sản phẩm với categoryId không tồn tại gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": null, \"name\": \"Bad Cat Laptop\", \"price\": 15000000, \"stock\": 5, \"categoryId\": 99999}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_020 - [FAIL (Bug)] Bug nghiêm trọng: Cập nhật sản phẩm ID không tồn tại gây lỗi 500 FK Violation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_020 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. Sản phẩm cần cập nhật không tồn tại.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! sp_update_product chạy 0 dòng, sau đó sp_upsert_product_detail chèn product_id=99999 gây lỗi FK 'product_details_product_id_fkey'!",
+                  "pm.test('TC_ADM_020 - Bug nghiêm trọng: Cập nhật sản phẩm ID không tồn tại gây lỗi 500 FK Violation (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "save"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_020`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, cập nhật sản phẩm với id = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. Sản phẩm cần cập nhật không tồn tại.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! sp_update_product chạy 0 dòng, sau đó sp_upsert_product_detail chèn product_id=99999 gây lỗi FK 'product_details_product_id_fkey'!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cập nhật sản phẩm ID không tồn tại gây lỗi 500 FK Violation)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": 99999, \"name\": \"Ghost Laptop\", \"price\": 15000000, \"stock\": 5, \"categoryId\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_021 - [PASS] Admin xóa sản phẩm chưa có đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_021 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Xóa sản phẩm và tự động CASCADE xóa product_details.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_021 - Admin xóa sản phẩm chưa có đơn hàng (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/{{created_prod_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "{{created_prod_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_021`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Sản phẩm vừa tạo chưa nằm trong đơn hàng nào\n**Kết quả mong đợi:** HTTP 200 OK. Xóa sản phẩm và tự động CASCADE xóa product_details.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin xóa sản phẩm chưa có đơn hàng)"
+          }
+        },
+        {
+          "name": "TC_ADM_022 - [FAIL (Bug)] Bug nghiêm trọng: Xóa sản phẩm đã có đơn hàng gây lỗi 500 FK Violation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_022 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc 409 Conflict. Không thể xóa cứng sản phẩm đã có trong đơn hàng.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Bảng order_details tham chiếu products(id) không có ON DELETE CASCADE nên ném PostgresException 23503!",
+                  "pm.test('TC_ADM_022 - Bug nghiêm trọng: Xóa sản phẩm đã có đơn hàng gây lỗi 500 FK Violation (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/102",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "102"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_022`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Sản phẩm ID 102 đã từng được đặt trong bảng order_details\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc 409 Conflict. Không thể xóa cứng sản phẩm đã có trong đơn hàng.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Bảng order_details tham chiếu products(id) không có ON DELETE CASCADE nên ném PostgresException 23503!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Xóa sản phẩm đã có đơn hàng gây lỗi 500 FK Violation)"
+          }
+        },
+        {
+          "name": "TC_ADM_023 - [FAIL (Bug)] Bug: Xóa sản phẩm không tồn tại vẫn trả về 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_023 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Luôn báo 'Đã xóa sản phẩm.' dù ID không tồn tại.",
+                  "pm.test('TC_ADM_023 - Bug: Xóa sản phẩm không tồn tại vẫn trả về 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/products/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "products",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_023`\n**Chức năng:** QL Sản phẩm\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Xóa sản phẩm ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Luôn báo 'Đã xóa sản phẩm.' dù ID không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Xóa sản phẩm không tồn tại vẫn trả về 200 OK)"
+          }
+        },
+        {
+          "name": "TC_ADM_024 - [PASS] Admin lấy danh sách đơn hàng phân trang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_024 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {items, totalItems, currentPage, totalPages}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_024 - Admin lấy danh sách đơn hàng phân trang (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?page=0&size=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_024`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {items, totalItems, currentPage, totalPages}.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin lấy danh sách đơn hàng phân trang)"
+          }
+        },
+        {
+          "name": "TC_ADM_025 - [PASS] Admin tìm kiếm đơn hàng theo keyword",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_025 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các đơn hàng khớp từ khóa.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_025 - Admin tìm kiếm đơn hàng theo keyword (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?keyword=0901234567",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "0901234567"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_025`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các đơn hàng khớp từ khóa.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin tìm kiếm đơn hàng theo keyword)"
+          }
+        },
+        {
+          "name": "TC_ADM_026 - [PASS] Admin lọc đơn hàng theo trạng thái",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_026 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Chỉ trả về các đơn có trạng thái 'CHỜ XÁC NHẬN'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_026 - Admin lọc đơn hàng theo trạng thái (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?status=CH%E1%BB%9C%20X%C3%81C%20NH%E1%BA%ACN",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CH%E1%BB%9C%20X%C3%81C%20NH%E1%BA%ACN"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_026`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Chỉ trả về các đơn có trạng thái 'CHỜ XÁC NHẬN'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin lọc đơn hàng theo trạng thái)"
+          }
+        },
+        {
+          "name": "TC_ADM_027 - [PASS] Admin lọc đơn hàng theo khoảng thời gian startDate - endDate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_027 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về các đơn hàng trong khoảng thời gian.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_027 - Admin lọc đơn hàng theo khoảng thời gian startDate - endDate (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?startDate=2025-01-01&endDate=2027-12-31",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2027-12-31"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_027`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Trả về các đơn hàng trong khoảng thời gian.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin lọc đơn hàng theo khoảng thời gian startDate - endDate)"
+          }
+        },
+        {
+          "name": "TC_ADM_028 - [FAIL (Bug)] Bug: page=-1 trên /api/admin/orders gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_028 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 2201X: OFFSET must not be negative.",
+                  "pm.test('TC_ADM_028 - Bug: page=-1 trên /api/admin/orders gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?page=-1&size=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "-1"
+                },
+                {
+                  "key": "size",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_028`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 2201X: OFFSET must not be negative.\n**Đánh giá:** **FAIL (Bug)** (Bug: page=-1 trên /api/admin/orders gây lỗi 500)"
+          }
+        },
+        {
+          "name": "TC_ADM_029 - [FAIL (Bug)] Bug: size=0 trên /api/admin/orders gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_029 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Chia cho 0 tạo NaN/Infinity khi serialize JSON.",
+                  "pm.test('TC_ADM_029 - Bug: size=0 trên /api/admin/orders gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?page=0&size=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_029`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Chia cho 0 tạo NaN/Infinity khi serialize JSON.\n**Đánh giá:** **FAIL (Bug)** (Bug: size=0 trên /api/admin/orders gây lỗi 500)"
+          }
+        },
+        {
+          "name": "TC_ADM_030 - [PASS] Admin cập nhật trạng thái đơn hàng hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_030 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cập nhật trạng thái đơn hàng thành 'ĐANG GIAO'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_030 - Admin cập nhật trạng thái đơn hàng hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "status"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_030`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, đơn hàng ID 1 tồn tại\n**Kết quả mong đợi:** HTTP 200 OK. Cập nhật trạng thái đơn hàng thành 'ĐANG GIAO'.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin cập nhật trạng thái đơn hàng hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"status\": \"ĐANG GIAO\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_031 - [FAIL (Bug)] Bug: Cho phép cập nhật trạng thái đơn hàng thành chuỗi rác bất kỳ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_031 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Chỉ chấp nhận các trạng thái hợp lệ trong danh mục quy định.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! StatusDto không kiểm tra danh sách trạng thái hợp lệ, lưu 'TRANG_THAI_RAC_123' vào DB!",
+                  "pm.test('TC_ADM_031 - Bug: Cho phép cập nhật trạng thái đơn hàng thành chuỗi rác bất kỳ (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "status"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_031`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request. Chỉ chấp nhận các trạng thái hợp lệ trong danh mục quy định.\n**Kết quả thực tế (Code):** HTTP 200 OK! StatusDto không kiểm tra danh sách trạng thái hợp lệ, lưu 'TRANG_THAI_RAC_123' vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép cập nhật trạng thái đơn hàng thành chuỗi rác bất kỳ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"status\": \"TRANG_THAI_RAC_123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_032 - [FAIL (Bug)] Bug: Cho phép cập nhật trạng thái đơn hàng thành rỗng ''",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_032 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Trạng thái không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu status='' vào DB.",
+                  "pm.test('TC_ADM_032 - Bug: Cho phép cập nhật trạng thái đơn hàng thành rỗng '' (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "status"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_032`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request. Trạng thái không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu status='' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép cập nhật trạng thái đơn hàng thành rỗng '')",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 1, \"status\": \"\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_033 - [FAIL (Bug)] Bug nghiệp vụ: Hủy đơn không hoàn lại tồn kho và không chặn chuyển ngược trạng thái",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_033 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Không cho phép chuyển ngược trạng thái đơn đã Hủy/Hoàn thành, và khi Hủy đơn phải hoàn lại tồn kho (stock).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Cho phép đảo ngược mọi trạng thái tùy ý VÀ khi chuyển sang 'ĐÃ HỦY' không hoàn lại tồn kho sản phẩm!",
+                  "pm.test('TC_ADM_033 - Bug nghiệp vụ: Hủy đơn không hoàn lại tồn kho và không chặn chuyển ngược trạng thái (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "status"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_033`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đơn hàng đã 'ĐÃ HỦY' hoặc 'HOÀN THÀNH'\n**Kết quả mong đợi:** HTTP 400 Bad Request. Không cho phép chuyển ngược trạng thái đơn đã Hủy/Hoàn thành, và khi Hủy đơn phải hoàn lại tồn kho (stock).\n**Kết quả thực tế (Code):** HTTP 200 OK! Cho phép đảo ngược mọi trạng thái tùy ý VÀ khi chuyển sang 'ĐÃ HỦY' không hoàn lại tồn kho sản phẩm!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiệp vụ: Hủy đơn không hoàn lại tồn kho và không chặn chuyển ngược trạng thái)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"status\": \"ĐÃ HỦY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_034 - [FAIL (Bug)] Bug: Cập nhật trạng thái đơn hàng không tồn tại vẫn trả về 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_034 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Báo 'Đã cập nhật trạng thái đơn hàng.' dù đơn không tồn tại.",
+                  "pm.test('TC_ADM_034 - Bug: Cập nhật trạng thái đơn hàng không tồn tại vẫn trả về 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "status"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_034`\n**Chức năng:** QL Đơn hàng\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** orderId = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Báo 'Đã cập nhật trạng thái đơn hàng.' dù đơn không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cập nhật trạng thái đơn hàng không tồn tại vẫn trả về 200 OK)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"orderId\": 99999, \"status\": \"HOÀN THÀNH\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_035 - [PASS] Admin lấy danh sách người dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_035 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về danh sách người dùng phân trang (ẩn trường password).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_035 - Admin lấy danh sách người dùng (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?page=0&size=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_035`\n**Chức năng:** QL Người dùng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Trả về danh sách người dùng phân trang (ẩn trường password).\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin lấy danh sách người dùng)"
+          }
+        },
+        {
+          "name": "TC_ADM_036 - [PASS] Admin tìm kiếm người dùng theo keyword",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_036 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tìm thấy tài khoản User Seed.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_036 - Admin tìm kiếm người dùng theo keyword (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?keyword=taobattu",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "taobattu"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_036`\n**Chức năng:** QL Người dùng\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 200 OK. Tìm thấy tài khoản User Seed.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin tìm kiếm người dùng theo keyword)"
+          }
+        },
+        {
+          "name": "TC_ADM_037 - [FAIL (Bug)] Bug: page=-1 trên /api/admin/users gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_037 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 2201X: OFFSET must not be negative.",
+                  "pm.test('TC_ADM_037 - Bug: page=-1 trên /api/admin/users gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?page=-1&size=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "-1"
+                },
+                {
+                  "key": "size",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_037`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 2201X: OFFSET must not be negative.\n**Đánh giá:** **FAIL (Bug)** (Bug: page=-1 trên /api/admin/users gây lỗi 500)"
+          }
+        },
+        {
+          "name": "TC_ADM_038 - [FAIL (Bug)] Bug: size=0 trên /api/admin/users gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_038 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Chia cho 0 tạo NaN/Infinity khi serialize JSON.",
+                  "pm.test('TC_ADM_038 - Bug: size=0 trên /api/admin/users gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?page=0&size=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_038`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Chia cho 0 tạo NaN/Infinity khi serialize JSON.\n**Đánh giá:** **FAIL (Bug)** (Bug: size=0 trên /api/admin/users gây lỗi 500)"
+          }
+        },
+        {
+          "name": "TC_ADM_039 - [PASS] Admin cập nhật quyền người dùng hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_039 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. JSON {message: 'Đã cập nhật quyền người dùng.'}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_039 - Admin cập nhật quyền người dùng hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "role"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_039`\n**Chức năng:** QL Người dùng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN, đổi quyền của user thường\n**Kết quả mong đợi:** HTTP 200 OK. JSON {message: 'Đã cập nhật quyền người dùng.'}.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin cập nhật quyền người dùng hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": 1, \"role\": \"USER\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_040 - [FAIL (Bug)] Bug: Cho phép gán quyền (role) bất kỳ không hợp lệ cho user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_040 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Chỉ chấp nhận role 'USER' hoặc 'ADMIN'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! RoleDto không kiểm tra giá trị hợp lệ, lưu 'SUPER_HACKER_ROLE' vào DB!",
+                  "pm.test('TC_ADM_040 - Bug: Cho phép gán quyền (role) bất kỳ không hợp lệ cho user (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "role"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_040`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN\n**Kết quả mong đợi:** HTTP 400 Bad Request. Chỉ chấp nhận role 'USER' hoặc 'ADMIN'.\n**Kết quả thực tế (Code):** HTTP 200 OK! RoleDto không kiểm tra giá trị hợp lệ, lưu 'SUPER_HACKER_ROLE' vào DB!\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép gán quyền (role) bất kỳ không hợp lệ cho user)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": 1, \"role\": \"SUPER_HACKER_ROLE\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_041 - [FAIL (Bug)] Bug nghiệp vụ: Admin có thể tự hạ quyền của chính mình",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_041 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Admin không được tự hạ quyền của chính mình.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! AdminUserController không kiểm tra currentAdminId == dto.UserId, cho phép Admin tự hạ quyền của mình xuống USER!",
+                  "pm.test('TC_ADM_041 - Bug nghiệp vụ: Admin có thể tự hạ quyền của chính mình (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "role"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_041`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN (userId = 2)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Admin không được tự hạ quyền của chính mình.\n**Kết quả thực tế (Code):** HTTP 200 OK! AdminUserController không kiểm tra currentAdminId == dto.UserId, cho phép Admin tự hạ quyền của mình xuống USER!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiệp vụ: Admin có thể tự hạ quyền của chính mình)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": 2, \"role\": \"USER\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_042 - [FAIL (Bug)] Bug: Cập nhật role cho userId không tồn tại vẫn báo 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_042 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Vẫn trả về thành công dù user không tồn tại.",
+                  "pm.test('TC_ADM_042 - Bug: Cập nhật role cho userId không tồn tại vẫn báo 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "role"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_042`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** userId = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Vẫn trả về thành công dù user không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cập nhật role cho userId không tồn tại vẫn báo 200 OK)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": 99999, \"role\": \"ADMIN\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_ADM_043 - [PASS] Admin xóa tài khoản chưa phát sinh đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_043 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Xóa user thành công.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_ADM_043 - Admin xóa tài khoản chưa phát sinh đơn hàng (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{created_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{created_user_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_043`\n**Chức năng:** QL Người dùng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** User mới tạo chưa có đơn hàng nào\n**Kết quả mong đợi:** HTTP 200 OK. Xóa user thành công.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Admin xóa tài khoản chưa phát sinh đơn hàng)"
+          }
+        },
+        {
+          "name": "TC_ADM_044 - [FAIL (Bug)] Bug nghiêm trọng: Xóa user đã từng mua hàng gây lỗi 500 FK Violation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_044 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc khóa mềm (soft-delete) / SET NULL trên orders.user_id.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Bảng orders tham chiếu users(id) không có ON DELETE SET NULL/CASCADE, hàm sp_delete_user chỉ xóa cart_items rồi DELETE users nên nổ lỗi FK 23503!",
+                  "pm.test('TC_ADM_044 - Bug nghiêm trọng: Xóa user đã từng mua hàng gây lỗi 500 FK Violation (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "1"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_044`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** User ID 1 đã có đơn hàng trong bảng orders (orders.user_id = 1)\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc khóa mềm (soft-delete) / SET NULL trên orders.user_id.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Bảng orders tham chiếu users(id) không có ON DELETE SET NULL/CASCADE, hàm sp_delete_user chỉ xóa cart_items rồi DELETE users nên nổ lỗi FK 23503!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Xóa user đã từng mua hàng gây lỗi 500 FK Violation)"
+          }
+        },
+        {
+          "name": "TC_ADM_045 - [FAIL (Bug)] Bug nghiêm trọng: Admin có thể tự xóa tài khoản của chính mình",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_045 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Admin không được phép tự xóa tài khoản đang đăng nhập của chính mình.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK (nếu Admin chưa có đơn hàng)! AdminUserController.Delete không chặn tự xóa chính mình!",
+                  "pm.test('TC_ADM_045 - Bug nghiêm trọng: Admin có thể tự xóa tài khoản của chính mình (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "2"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_045`\n**Chức năng:** QL Người dùng\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập ADMIN (userId = 2)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Admin không được phép tự xóa tài khoản đang đăng nhập của chính mình.\n**Kết quả thực tế (Code):** HTTP 200 OK (nếu Admin chưa có đơn hàng)! AdminUserController.Delete không chặn tự xóa chính mình!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Admin có thể tự xóa tài khoản của chính mình)"
+          }
+        },
+        {
+          "name": "TC_ADM_046 - [FAIL (Bug)] Bug: Xóa userId không tồn tại vẫn trả về 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_ADM_046 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Luôn trả về 'Đã xóa người dùng.' dù ID không tồn tại.",
+                  "pm.test('TC_ADM_046 - Bug: Xóa userId không tồn tại vẫn trả về 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_ADM_046`\n**Chức năng:** QL Người dùng\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** userId = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Luôn trả về 'Đã xóa người dùng.' dù ID không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Xóa userId không tồn tại vẫn trả về 200 OK)"
+          }
+        }
+      ]
+    }
+  ]
+}

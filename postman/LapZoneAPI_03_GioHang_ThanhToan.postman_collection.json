@@ -1,0 +1,2856 @@
+{
+  "info": {
+    "_postman_id": "b7c37937-8bb6-4764-8cd4-b20c2d3e5488",
+    "name": "LapZoneAPI - 03_GioHang_ThanhToan (44 TCs)",
+    "description": "Module 3: Giỏ Hàng & Thanh Toán (/api/cart, /api/checkout)\nTự động cấu hình sẵn {base_url} = http://localhost:5084 và tự động lấy JWT Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5084",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "taobattu@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "user_phone",
+      "value": "0900000001",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "Admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_phone",
+      "value": "0900000002",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "Abc123@",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "admin_cart_item_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "created_order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "created_cat_id",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "created_prod_id",
+      "value": "120",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "10",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "item": [
+        {
+          "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login USER 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('user_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản User Seed và lưu JWT vào biến {{user_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 2] Đăng nhập ADMIN & Lưu {{admin_token}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Login ADMIN 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.token) {",
+                  "        pm.collectionVariables.set('admin_token', json.token);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrPhone\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Tự động đăng nhập tài khoản Admin Seed và lưu JWT vào biến {{admin_token}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 3] Tạo dữ liệu mồi Giỏ hàng & lấy {{cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('user_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 101,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm 101 vào giỏ USER và lưu {{cart_item_id}}."
+          }
+        },
+        {
+          "name": "[AUTO-SETUP 4] Tạo Giỏ hàng của User B (Admin) để test IDOR {{admin_cart_item_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('base_url') + '/api/cart',",
+                  "    method: 'GET',",
+                  "    header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') }",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        var data = res.json();",
+                  "        if (data.items && data.items.length > 0) {",
+                  "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Seed Admin Cart Item 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 102,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03_GioHang_ThanhToan",
+      "item": [
+        {
+          "name": "TC_CART_001 - [PASS] Xem giỏ hàng khi đã đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_001 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về JSON {items: [...], total: ...}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về danh sách sản phẩm trong giỏ và tổng tiền.",
+                  "pm.test('TC_CART_001 - Xem giỏ hàng khi đã đăng nhập (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_001`\n**Chức năng:** Xem giỏ hàng\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER ({{user_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Trả về JSON {items: [...], total: ...}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về danh sách sản phẩm trong giỏ và tổng tiền.\n**Đánh giá:** **PASS** (Xem giỏ hàng khi đã đăng nhập)"
+          }
+        },
+        {
+          "name": "TC_CART_002 - [PASS] Chặn xem giỏ hàng khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_002 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 401 Unauthorized.",
+                  "pm.test('TC_CART_002 - Chặn xem giỏ hàng khi chưa đăng nhập (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_002`\n**Chức năng:** Xem giỏ hàng\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Chưa đăng nhập\n**Kết quả mong đợi:** HTTP 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 401 Unauthorized.\n**Đánh giá:** **PASS** (Chặn xem giỏ hàng khi chưa đăng nhập)"
+          }
+        },
+        {
+          "name": "TC_CART_003 - [PASS] Thêm sản phẩm còn hàng vào giỏ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_003 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. JSON {message: 'Đã thêm sản phẩm vào giỏ hàng!'}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Thêm mới hoặc cộng dồn số lượng vào cart_items.",
+                  "pm.test('TC_CART_003 - Thêm sản phẩm còn hàng vào giỏ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_003`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER, SP ID 101 có stock=15\n**Kết quả mong đợi:** HTTP 200 OK. JSON {message: 'Đã thêm sản phẩm vào giỏ hàng!'}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Thêm mới hoặc cộng dồn số lượng vào cart_items.\n**Đánh giá:** **PASS** (Thêm sản phẩm còn hàng vào giỏ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 101, \"quantity\": 2}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_004 - [PASS] Cộng dồn số lượng khi thêm trùng sản phẩm vào giỏ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_004 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Số lượng SP 101 trong giỏ tăng lên 3.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_add_to_cart cộng dồn existing_qty + p_quantity.",
+                  "pm.test('TC_CART_004 - Cộng dồn số lượng khi thêm trùng sản phẩm vào giỏ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_004`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Positive | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** SP ID 101 đã có trong giỏ với quantity=2\n**Kết quả mong đợi:** HTTP 200 OK. Số lượng SP 101 trong giỏ tăng lên 3.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_add_to_cart cộng dồn existing_qty + p_quantity.\n**Đánh giá:** **PASS** (Cộng dồn số lượng khi thêm trùng sản phẩm vào giỏ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 101, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_005 - [PASS] Giới hạn số lượng giỏ hàng theo tồn kho (stock)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_005 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK hoặc 400. Số lượng trong giỏ không được vượt quá tồn kho (tối đa = 2).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Hàm sp_add_to_cart dùng LEAST(p_quantity, stock_qty) giới hạn quantity = 2.",
+                  "pm.test('TC_CART_005 - Giới hạn số lượng giỏ hàng theo tồn kho (stock) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_005`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Boundary | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 1 có stock=2\n**Kết quả mong đợi:** HTTP 200 OK hoặc 400. Số lượng trong giỏ không được vượt quá tồn kho (tối đa = 2).\n**Kết quả thực tế (Code):** HTTP 200 OK. Hàm sp_add_to_cart dùng LEAST(p_quantity, stock_qty) giới hạn quantity = 2.\n**Đánh giá:** **PASS** (Giới hạn số lượng giỏ hàng theo tồn kho (stock))",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 1, \"quantity\": 99}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_006 - [FAIL (Bug)] Bug: Cho phép thêm sản phẩm vào giỏ với quantity = 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_006 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng thêm vào giỏ phải >= 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! sp_add_to_cart không kiểm tra p_quantity <= 0, chèn dòng có quantity = 0 vào cart_items!",
+                  "pm.test('TC_CART_006 - Bug: Cho phép thêm sản phẩm vào giỏ với quantity = 0 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_006`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng thêm vào giỏ phải >= 1.\n**Kết quả thực tế (Code):** HTTP 200 OK! sp_add_to_cart không kiểm tra p_quantity <= 0, chèn dòng có quantity = 0 vào cart_items!\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép thêm sản phẩm vào giỏ với quantity = 0)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 102, \"quantity\": 0}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_007 - [FAIL (Bug)] Bug nghiêm trọng: Thêm quantity âm làm tổng tiền giỏ hàng bị âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_007 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng thêm vào giỏ không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! LEAST(-5, 20) = -5, lưu quantity = -5 vào giỏ hàng làm tổng tiền giỏ hàng (total) bị ÂM!",
+                  "pm.test('TC_CART_007 - Bug nghiêm trọng: Thêm quantity âm làm tổng tiền giỏ hàng bị âm (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_007`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng thêm vào giỏ không được âm.\n**Kết quả thực tế (Code):** HTTP 200 OK! LEAST(-5, 20) = -5, lưu quantity = -5 vào giỏ hàng làm tổng tiền giỏ hàng (total) bị ÂM!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Thêm quantity âm làm tổng tiền giỏ hàng bị âm)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 102, \"quantity\": -5}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_008 - [FAIL (Bug)] Bug: Thêm sản phẩm hết hàng (stock=0) tạo bản ghi có quantity=0 trong giỏ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_008 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Sản phẩm đã hết hàng, không thể thêm vào giỏ.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! sp_add_to_cart chèn dòng vào cart_items với quantity = LEAST(1, 0) = 0 thay vì báo lỗi hết hàng.",
+                  "pm.test('TC_CART_008 - Bug: Thêm sản phẩm hết hàng (stock=0) tạo bản ghi có quantity=0 trong giỏ (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_008`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 13 đã hết hàng (stock = 0)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Sản phẩm đã hết hàng, không thể thêm vào giỏ.\n**Kết quả thực tế (Code):** HTTP 200 OK! sp_add_to_cart chèn dòng vào cart_items với quantity = LEAST(1, 0) = 0 thay vì báo lỗi hết hàng.\n**Đánh giá:** **FAIL (Bug)** (Bug: Thêm sản phẩm hết hàng (stock=0) tạo bản ghi có quantity=0 trong giỏ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 13, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_009 - [FAIL (Bug)] Bug nghiêm trọng: Thêm productId không tồn tại gây lỗi 500 FK Violation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_009 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found hoặc 400 Bad Request. Sản phẩm không tồn tại.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: insert or update on table 'cart_items' violates foreign key constraint 'cart_items_product_id_fkey'.",
+                  "pm.test('TC_CART_009 - Bug nghiêm trọng: Thêm productId không tồn tại gây lỗi 500 FK Violation (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_009`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found hoặc 400 Bad Request. Sản phẩm không tồn tại.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! Npgsql.PostgresException 23503: insert or update on table 'cart_items' violates foreign key constraint 'cart_items_product_id_fkey'.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Thêm productId không tồn tại gây lỗi 500 FK Violation)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 99999, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_010 - [PASS] Chặn thêm vào giỏ khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_010 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401 Unauthorized.",
+                  "// Thực tế trên code (Actual): HTTP 401 Unauthorized.",
+                  "pm.test('TC_CART_010 - Chặn thêm vào giỏ khi chưa đăng nhập (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_010`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Chưa đăng nhập\n**Kết quả mong đợi:** HTTP 401 Unauthorized.\n**Kết quả thực tế (Code):** HTTP 401 Unauthorized.\n**Đánh giá:** **PASS** (Chặn thêm vào giỏ khi chưa đăng nhập)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_011 - [PASS] Cập nhật số lượng sản phẩm trong giỏ hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_011 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Cập nhật số lượng thành công.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. JSON {message: 'Cập nhật số lượng thành công.'}.",
+                  "pm.test('TC_CART_011 - Cập nhật số lượng sản phẩm trong giỏ hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "update"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_011`\n**Chức năng:** Cập nhật giỏ\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Có cartItemId hợp lệ trong giỏ\n**Kết quả mong đợi:** HTTP 200 OK. Cập nhật số lượng thành công.\n**Kết quả thực tế (Code):** HTTP 200 OK. JSON {message: 'Cập nhật số lượng thành công.'}.\n**Đánh giá:** **PASS** (Cập nhật số lượng sản phẩm trong giỏ hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cartItemId\": {{cart_item_id}}, \"quantity\": 2}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_012 - [PASS] Cập nhật quantity = 0 tự động xóa item khỏi giỏ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_012 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Khi quantity <= 0, tự động xóa sản phẩm khỏi giỏ hàng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_update_cart_quantity xóa dòng khi p_quantity <= 0.",
+                  "pm.test('TC_CART_012 - Cập nhật quantity = 0 tự động xóa item khỏi giỏ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "update"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_012`\n**Chức năng:** Cập nhật giỏ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Có cartItemId hợp lệ, truyền quantity = 0\n**Kết quả mong đợi:** HTTP 200 OK. Khi quantity <= 0, tự động xóa sản phẩm khỏi giỏ hàng.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_update_cart_quantity xóa dòng khi p_quantity <= 0.\n**Đánh giá:** **PASS** (Cập nhật quantity = 0 tự động xóa item khỏi giỏ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cartItemId\": {{cart_item_id}}, \"quantity\": 0}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_013 - [PASS] Cập nhật quantity vượt quá tồn kho tự động giới hạn bằng stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_013 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Số lượng được giới hạn bằng tồn kho (stock=2).",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. LEAST(500, stock_qty) giữ quantity = stock.",
+                  "pm.test('TC_CART_013 - Cập nhật quantity vượt quá tồn kho tự động giới hạn bằng stock (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "update"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_013`\n**Chức năng:** Cập nhật giỏ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Có cartItemId của SP có stock=2\n**Kết quả mong đợi:** HTTP 200 OK. Số lượng được giới hạn bằng tồn kho (stock=2).\n**Kết quả thực tế (Code):** HTTP 200 OK. LEAST(500, stock_qty) giữ quantity = stock.\n**Đánh giá:** **PASS** (Cập nhật quantity vượt quá tồn kho tự động giới hạn bằng stock)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cartItemId\": {{cart_item_id}}, \"quantity\": 500}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_014 - [FAIL (Bug)] Bug bảo mật nghiêm trọng (IDOR): Sửa/xóa giỏ hàng của user khác qua PUT /api/cart/update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_014 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 403 Forbidden hoặc 404 Not Found. Không được sửa giỏ hàng của người khác.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CartController.Update và sp_update_cart_quantity KHÔNG kiểm tra user_id! User A sửa hoặc xóa (quantity=0) giỏ hàng của bất kỳ user nào!",
+                  "pm.test('TC_CART_014 - Bug bảo mật nghiêm trọng (IDOR): Sửa/xóa giỏ hàng của user khác qua PUT /api/cart/update (Expected HTTP 403)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "update"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_014`\n**Chức năng:** Cập nhật giỏ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** User B (Admin, ID=2) có cartItemId=X trong giỏ; đăng nhập bằng User A (ID=1)\n**Kết quả mong đợi:** HTTP 403 Forbidden hoặc 404 Not Found. Không được sửa giỏ hàng của người khác.\n**Kết quả thực tế (Code):** HTTP 200 OK! CartController.Update và sp_update_cart_quantity KHÔNG kiểm tra user_id! User A sửa hoặc xóa (quantity=0) giỏ hàng của bất kỳ user nào!\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật nghiêm trọng (IDOR): Sửa/xóa giỏ hàng của user khác qua PUT /api/cart/update)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cartItemId\": {{admin_cart_item_id}}, \"quantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_015 - [FAIL (Bug)] Bug: Cập nhật cartItemId không tồn tại vẫn báo 200 thành công",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_015 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found. Không tìm thấy mục giỏ hàng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Trả về 'Cập nhật số lượng thành công.' dù không có bản ghi nào được cập nhật.",
+                  "pm.test('TC_CART_015 - Bug: Cập nhật cartItemId không tồn tại vẫn báo 200 thành công (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "update"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_015`\n**Chức năng:** Cập nhật giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** cartItemId 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found. Không tìm thấy mục giỏ hàng.\n**Kết quả thực tế (Code):** HTTP 200 OK! Trả về 'Cập nhật số lượng thành công.' dù không có bản ghi nào được cập nhật.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cập nhật cartItemId không tồn tại vẫn báo 200 thành công)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cartItemId\": 99999, \"quantity\": 2}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_016 - [PASS] Xóa sản phẩm khỏi giỏ hàng hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_016 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. JSON {message: 'Đã xóa sản phẩm khỏi giỏ hàng.'}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_CART_016 - Xóa sản phẩm khỏi giỏ hàng hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/{{cart_item_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "{{cart_item_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_016`\n**Chức năng:** Xóa khỏi giỏ\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Có cartItemId hợp lệ của User\n**Kết quả mong đợi:** HTTP 200 OK. JSON {message: 'Đã xóa sản phẩm khỏi giỏ hàng.'}.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Xóa sản phẩm khỏi giỏ hàng hợp lệ)"
+          }
+        },
+        {
+          "name": "TC_CART_017 - [FAIL (Bug)] Bug bảo mật nghiêm trọng (IDOR): Xóa bất kỳ cart item của user khác qua DELETE /api/cart/{id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_017 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 403 Forbidden hoặc 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CartController.Remove và sp_remove_cart_item KHÔNG truyền userId, cho phép xóa giỏ hàng của bất kỳ ai!",
+                  "pm.test('TC_CART_017 - Bug bảo mật nghiêm trọng (IDOR): Xóa bất kỳ cart item của user khác qua DELETE /api/cart/{id} (Expected HTTP 403)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/{{admin_cart_item_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "{{admin_cart_item_id}}"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_017`\n**Chức năng:** Xóa khỏi giỏ\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** User B có cartItemId=Y; gọi DELETE bằng token của User A\n**Kết quả mong đợi:** HTTP 403 Forbidden hoặc 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! CartController.Remove và sp_remove_cart_item KHÔNG truyền userId, cho phép xóa giỏ hàng của bất kỳ ai!\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật nghiêm trọng (IDOR): Xóa bất kỳ cart item của user khác qua DELETE /api/cart/{id})"
+          }
+        },
+        {
+          "name": "TC_CART_018 - [FAIL (Bug)] Bug: Xóa cartItemId không tồn tại vẫn trả về 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_018 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 404 Not Found.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Luôn trả về thành công dù ID không tồn tại.",
+                  "pm.test('TC_CART_018 - Bug: Xóa cartItemId không tồn tại vẫn trả về 200 OK (Expected HTTP 404)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/99999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "99999"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_018`\n**Chức năng:** Xóa khỏi giỏ\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** cartItemId 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 404 Not Found.\n**Kết quả thực tế (Code):** HTTP 200 OK! Luôn trả về thành công dù ID không tồn tại.\n**Đánh giá:** **FAIL (Bug)** (Bug: Xóa cartItemId không tồn tại vẫn trả về 200 OK)"
+          }
+        },
+        {
+          "name": "TC_CART_019 - [PASS] Thanh toán Mua ngay (BuyNow) khách vãng lai với COD",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_019 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tạo đơn hàng với status='CHỜ XÁC NHẬN', trừ tồn kho SP 102 đi 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. Trả về {message, orderId, total: 24590000, paymentMethod: 'COD'}.",
+                  "if (pm.response.code === 200) {",
+                  "    var j = pm.response.json();",
+                  "    if (j && j.orderId) pm.collectionVariables.set('created_order_id', j.orderId);",
+                  "}",
+                  "pm.test('TC_CART_019 - Thanh toán Mua ngay (BuyNow) khách vãng lai với COD (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_019`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 102 còn hàng (stock=20), phương thức COD\n**Kết quả mong đợi:** HTTP 200 OK. Tạo đơn hàng với status='CHỜ XÁC NHẬN', trừ tồn kho SP 102 đi 1.\n**Kết quả thực tế (Code):** HTTP 200 OK. Trả về {message, orderId, total: 24590000, paymentMethod: 'COD'}.\n**Đánh giá:** **PASS** (Thanh toán Mua ngay (BuyNow) khách vãng lai với COD)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"0901234567\", \"address\": \"123 Cầu Giấy, HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_020 - [PASS] Thanh toán Mua ngay với chuyển khoản (BANK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_020 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tạo đơn hàng với status='CHỜ THANH TOÁN'.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. sp_create_order gán status='CHỜ THANH TOÁN' khi khác COD.",
+                  "pm.test('TC_CART_020 - Thanh toán Mua ngay với chuyển khoản (BANK) (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_020`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 103 còn hàng, phương thức BANK\n**Kết quả mong đợi:** HTTP 200 OK. Tạo đơn hàng với status='CHỜ THANH TOÁN'.\n**Kết quả thực tế (Code):** HTTP 200 OK. sp_create_order gán status='CHỜ THANH TOÁN' khi khác COD.\n**Đánh giá:** **PASS** (Thanh toán Mua ngay với chuyển khoản (BANK))",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van B\", \"customerPhone\": \"0901234568\", \"address\": \"456 Đống Đa, HN\", \"paymentMethod\": \"BANK\", \"buyNowProductId\": 103, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_021 - [PASS] Thanh toán Mua ngay khi đã đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_021 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Đơn hàng được gắn user_id = 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. CheckoutController đọc ClaimTypes.NameIdentifier và lưu user_id.",
+                  "pm.test('TC_CART_021 - Thanh toán Mua ngay khi đã đăng nhập (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_021`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER ({{user_token}})\n**Kết quả mong đợi:** HTTP 200 OK. Đơn hàng được gắn user_id = 1.\n**Kết quả thực tế (Code):** HTTP 200 OK. CheckoutController đọc ClaimTypes.NameIdentifier và lưu user_id.\n**Đánh giá:** **PASS** (Thanh toán Mua ngay khi đã đăng nhập)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"User Seed\",\n  \"customerPhone\": \"0900000001\",\n  \"address\": \"Hà Nội\",\n  \"paymentMethod\": \"COD\",\n  \"buyNowProductId\": 105,\n  \"buyNowQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_022 - [PASS] Thanh toán từ giỏ hàng (selectedCartItemIds) hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_022 | Loại: Positive | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tạo đơn hàng, trừ tồn kho và xóa cartItem đã chọn khỏi giỏ.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK.",
+                  "pm.test('TC_CART_022 - Thanh toán từ giỏ hàng (selectedCartItemIds) hợp lệ (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_022`\n**Chức năng:** Thanh toán (Giỏ hàng)\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập USER và có cartItem trong giỏ\n**Kết quả mong đợi:** HTTP 200 OK. Tạo đơn hàng, trừ tồn kho và xóa cartItem đã chọn khỏi giỏ.\n**Kết quả thực tế (Code):** HTTP 200 OK.\n**Đánh giá:** **PASS** (Thanh toán từ giỏ hàng (selectedCartItemIds) hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"User Seed\", \"customerPhone\": \"0900000001\", \"address\": \"123 Đường Láng\", \"paymentMethod\": \"COD\", \"selectedCartItemIds\": [{{cart_item_id}}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_023 - [PASS] Chặn thanh toán giỏ hàng khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_023 | Loại: Security | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 401 Unauthorized. JSON {message: 'Vui lòng đăng nhập để thanh toán giỏ hàng.'}.",
+                  "// Thực tế trên code (Actual): HTTP 401 Unauthorized.",
+                  "pm.test('TC_CART_023 - Chặn thanh toán giỏ hàng khi chưa đăng nhập (Expected HTTP 401)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_023`\n**Chức năng:** Thanh toán (Giỏ hàng)\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Chưa đăng nhập nhưng truyền selectedCartItemIds\n**Kết quả mong đợi:** HTTP 401 Unauthorized. JSON {message: 'Vui lòng đăng nhập để thanh toán giỏ hàng.'}.\n**Kết quả thực tế (Code):** HTTP 401 Unauthorized.\n**Đánh giá:** **PASS** (Chặn thanh toán giỏ hàng khi chưa đăng nhập)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Guest\",\n  \"customerPhone\": \"0901112223\",\n  \"address\": \"HN\",\n  \"paymentMethod\": \"COD\",\n  \"selectedCartItemIds\": [\n    1\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_024 - [PASS] Thanh toán không có sản phẩm nào",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_024 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. JSON {message: 'Không có sản phẩm để thanh toán.'}.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request.",
+                  "pm.test('TC_CART_024 - Thanh toán không có sản phẩm nào (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_024`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Không truyền cả selectedCartItemIds lẫn buyNowProductId\n**Kết quả mong đợi:** HTTP 400 Bad Request. JSON {message: 'Không có sản phẩm để thanh toán.'}.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Thanh toán không có sản phẩm nào)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Test\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_025 - [PASS] Mua ngay sản phẩm không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_025 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. JSON {message: 'Sản phẩm không tồn tại.'}.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request.",
+                  "pm.test('TC_CART_025 - Mua ngay sản phẩm không tồn tại (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_025`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** buyNowProductId = 99999 không tồn tại\n**Kết quả mong đợi:** HTTP 400 Bad Request. JSON {message: 'Sản phẩm không tồn tại.'}.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Mua ngay sản phẩm không tồn tại)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Test\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 99999, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_026 - [FAIL (Bug)] Bug nghiêm trọng: Cho phép đặt hàng với buyNowQuantity = 0 (Tổng tiền = 0đ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_026 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng mua phải >= 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CheckoutService không kiểm tra buyNowQuantity <= 0, tạo đơn hàng với quantity = 0 và totalAmount = 0!",
+                  "pm.test('TC_CART_026 - Bug nghiêm trọng: Cho phép đặt hàng với buyNowQuantity = 0 (Tổng tiền = 0đ) (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_026`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** buyNowQuantity = 0\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng mua phải >= 1.\n**Kết quả thực tế (Code):** HTTP 200 OK! CheckoutService không kiểm tra buyNowQuantity <= 0, tạo đơn hàng với quantity = 0 và totalAmount = 0!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cho phép đặt hàng với buyNowQuantity = 0 (Tổng tiền = 0đ))",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Zero Qty\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 0}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_027 - [FAIL (Bug)] Bug cực kỳ nghiêm trọng: Đặt hàng số lượng âm tạo đơn tiền âm và làm tăng khống tồn kho DB",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_027 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng mua không được âm.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Tạo đơn hàng với totalAmount ÂM (-73,770,000đ) VÀ hàm sp_insert_order_detail tính stock - (-3) làm TĂNG tồn kho của sản phẩm lên +3!",
+                  "pm.test('TC_CART_027 - Bug cực kỳ nghiêm trọng: Đặt hàng số lượng âm tạo đơn tiền âm và làm tăng khống tồn kho DB (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_027`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** buyNowQuantity = -3 (số lượng âm)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng mua không được âm.\n**Kết quả thực tế (Code):** HTTP 200 OK! Tạo đơn hàng với totalAmount ÂM (-73,770,000đ) VÀ hàm sp_insert_order_detail tính stock - (-3) làm TĂNG tồn kho của sản phẩm lên +3!\n**Đánh giá:** **FAIL (Bug)** (Bug cực kỳ nghiêm trọng: Đặt hàng số lượng âm tạo đơn tiền âm và làm tăng khống tồn kho DB)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Negative Qty\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": -3}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_028 - [FAIL (Bug)] Bug nghiêm trọng: Cho phép đặt mua thành công sản phẩm đã hết hàng (stock=0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_028 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Sản phẩm đã hết hàng.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CheckoutService không kiểm tra product.Stock, vẫn cho đặt mua sản phẩm có stock = 0!",
+                  "pm.test('TC_CART_028 - Bug nghiêm trọng: Cho phép đặt mua thành công sản phẩm đã hết hàng (stock=0) (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_028`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 13 đã hết hàng (stock = 0)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Sản phẩm đã hết hàng.\n**Kết quả thực tế (Code):** HTTP 200 OK! CheckoutService không kiểm tra product.Stock, vẫn cho đặt mua sản phẩm có stock = 0!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Cho phép đặt mua thành công sản phẩm đã hết hàng (stock=0))",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Out Stock\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 13, \"buyNowQuantity\": 2}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_029 - [FAIL (Bug)] Bug nghiêm trọng: Mua ngay không kiểm tra vượt quá số lượng tồn kho",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_029 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số lượng đặt vượt quá tồn kho hiện có.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Tạo đơn 500 chiếc dù kho chỉ có 3, sau đó GREATEST(stock - 500, 0) đưa stock về 0.",
+                  "pm.test('TC_CART_029 - Bug nghiêm trọng: Mua ngay không kiểm tra vượt quá số lượng tồn kho (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_029`\n**Chức năng:** Thanh toán (BuyNow)\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** SP ID 109 chỉ còn stock = 3, đặt mua 500 chiếc\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số lượng đặt vượt quá tồn kho hiện có.\n**Kết quả thực tế (Code):** HTTP 200 OK! Tạo đơn 500 chiếc dù kho chỉ có 3, sau đó GREATEST(stock - 500, 0) đưa stock về 0.\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng: Mua ngay không kiểm tra vượt quá số lượng tồn kho)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Over Stock\", \"customerPhone\": \"0901112223\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 109, \"buyNowQuantity\": 500}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_030 - [FAIL (Bug)] Bug nghiêm trọng (Logic + IDOR): Truyền selectedCartItemIds của người khác tạo đơn 0đ và xóa giỏ hàng của nạn nhân",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_030 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Danh sách sản phẩm thanh toán trống hoặc không thuộc về bạn.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Tạo đơn hàng rỗng (total = 0, 0 order_details) VÀ gọi sp_delete_cart_items xóa luôn cart item của User B!",
+                  "pm.test('TC_CART_030 - Bug nghiêm trọng (Logic + IDOR): Truyền selectedCartItemIds của người khác tạo đơn 0đ và xóa giỏ hàng của nạn nhân (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_030`\n**Chức năng:** Thanh toán (Giỏ hàng)\n**Loại TC:** Security | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Đã đăng nhập User A, truyền selectedCartItemIds không thuộc giỏ của User A (ví dụ [99999] hoặc cartItemId của User B)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Danh sách sản phẩm thanh toán trống hoặc không thuộc về bạn.\n**Kết quả thực tế (Code):** HTTP 200 OK! Tạo đơn hàng rỗng (total = 0, 0 order_details) VÀ gọi sp_delete_cart_items xóa luôn cart item của User B!\n**Đánh giá:** **FAIL (Bug)** (Bug nghiêm trọng (Logic + IDOR): Truyền selectedCartItemIds của người khác tạo đơn 0đ và xóa giỏ hàng của nạn nhân)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"User A\", \"customerPhone\": \"0900000001\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"selectedCartItemIds\": [{{admin_cart_item_id}}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_031 - [FAIL (Bug)] Bug: Cho phép thanh toán với customerName rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_031 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Tên người nhận không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! CheckoutDto không có [Required], lưu đơn hàng với customer_name=''.",
+                  "pm.test('TC_CART_031 - Bug: Cho phép thanh toán với customerName rỗng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_031`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** customerName rỗng\n**Kết quả mong đợi:** HTTP 400 Bad Request. Tên người nhận không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! CheckoutDto không có [Required], lưu đơn hàng với customer_name=''.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép thanh toán với customerName rỗng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_032 - [FAIL (Bug)] Bug: Cho phép thanh toán với customerPhone rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_032 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số điện thoại người nhận không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu đơn hàng với customer_phone=''.",
+                  "pm.test('TC_CART_032 - Bug: Cho phép thanh toán với customerPhone rỗng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_032`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** customerPhone rỗng\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số điện thoại người nhận không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu đơn hàng với customer_phone=''.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép thanh toán với customerPhone rỗng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_033 - [FAIL (Bug)] Bug: Không kiểm tra định dạng SĐT khi thanh toán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_033 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Số điện thoại không hợp lệ.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu customer_phone='not_a_phone' vào DB.",
+                  "pm.test('TC_CART_033 - Bug: Không kiểm tra định dạng SĐT khi thanh toán (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_033`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** customerPhone sai định dạng (chứa chữ)\n**Kết quả mong đợi:** HTTP 400 Bad Request. Số điện thoại không hợp lệ.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu customer_phone='not_a_phone' vào DB.\n**Đánh giá:** **FAIL (Bug)** (Bug: Không kiểm tra định dạng SĐT khi thanh toán)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"not_a_phone\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_034 - [FAIL (Bug)] Bug: customerPhone > 20 ký tự gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_034 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. SĐT vượt quá độ dài cho phép.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).",
+                  "pm.test('TC_CART_034 - Bug: customerPhone > 20 ký tự gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_034`\n**Chức năng:** Thanh toán\n**Loại TC:** Boundary | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** customerPhone > 20 ký tự\n**Kết quả mong đợi:** HTTP 400 Bad Request. SĐT vượt quá độ dài cho phép.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).\n**Đánh giá:** **FAIL (Bug)** (Bug: customerPhone > 20 ký tự gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"0123456789012345678912345\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_035 - [FAIL (Bug)] Bug: Cho phép đặt hàng với địa chỉ rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_035 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Địa chỉ giao hàng không được để trống.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Tạo đơn giao hàng với address=''.",
+                  "pm.test('TC_CART_035 - Bug: Cho phép đặt hàng với địa chỉ rỗng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_035`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** address rỗng\n**Kết quả mong đợi:** HTTP 400 Bad Request. Địa chỉ giao hàng không được để trống.\n**Kết quả thực tế (Code):** HTTP 200 OK! Tạo đơn giao hàng với address=''.\n**Đánh giá:** **FAIL (Bug)** (Bug: Cho phép đặt hàng với địa chỉ rỗng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"0901234567\", \"address\": \"\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_036 - [FAIL (Bug)] Bug: Không kiểm tra danh sách phương thức thanh toán hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_036 | Loại: Negative | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Chỉ chấp nhận phương thức COD hoặc BANK.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu payment_method='FREE_MONEY' và gán status='CHỜ THANH TOÁN'.",
+                  "pm.test('TC_CART_036 - Bug: Không kiểm tra danh sách phương thức thanh toán hợp lệ (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_036`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** paymentMethod không hợp lệ\n**Kết quả mong đợi:** HTTP 400 Bad Request. Chỉ chấp nhận phương thức COD hoặc BANK.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu payment_method='FREE_MONEY' và gán status='CHỜ THANH TOÁN'.\n**Đánh giá:** **FAIL (Bug)** (Bug: Không kiểm tra danh sách phương thức thanh toán hợp lệ)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"FREE_MONEY\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_037 - [FAIL (Bug)] Bug: paymentMethod > 20 ký tự gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_037 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).",
+                  "pm.test('TC_CART_037 - Bug: paymentMethod > 20 ký tự gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_037`\n**Chức năng:** Thanh toán\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** paymentMethod > 20 ký tự\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(20).\n**Đánh giá:** **FAIL (Bug)** (Bug: paymentMethod > 20 ký tự gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Le Van A\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"VERY_LONG_PAYMENT_METHOD_NAME_123\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_038 - [FAIL (Bug)] Bug bảo mật: Stored XSS trong customerName và address của đơn hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_038 | Loại: Security | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request hoặc escape HTML.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK! Lưu nguyên payload XSS vào bảng orders.",
+                  "pm.test('TC_CART_038 - Bug bảo mật: Stored XSS trong customerName và address của đơn hàng (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_038`\n**Chức năng:** Thanh toán\n**Loại TC:** Security | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Stored XSS trong thông tin người nhận\n**Kết quả mong đợi:** HTTP 400 Bad Request hoặc escape HTML.\n**Kết quả thực tế (Code):** HTTP 200 OK! Lưu nguyên payload XSS vào bảng orders.\n**Đánh giá:** **FAIL (Bug)** (Bug bảo mật: Stored XSS trong customerName và address của đơn hàng)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"<script>alert(1)</script>\", \"customerPhone\": \"0901234567\", \"address\": \"<svg onload=alert(1)>\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 102, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_039 - [PASS] Mặc định buyNowQuantity = 1 khi truyền null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_039 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Tự động lấy số lượng mặc định = 1.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. CheckoutService dùng dto.BuyNowQuantity ?? 1.",
+                  "pm.test('TC_CART_039 - Mặc định buyNowQuantity = 1 khi truyền null (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_039`\n**Chức năng:** Thanh toán\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** buyNowQuantity = null (mặc định là 1)\n**Kết quả mong đợi:** HTTP 200 OK. Tự động lấy số lượng mặc định = 1.\n**Kết quả thực tế (Code):** HTTP 200 OK. CheckoutService dùng dto.BuyNowQuantity ?? 1.\n**Đánh giá:** **PASS** (Mặc định buyNowQuantity = 1 khi truyền null)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Default Qty\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 117, \"buyNowQuantity\": null}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_040 - [PASS] Truyền selectedCartItemIds rỗng [] báo lỗi 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_040 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. JSON {message: 'Không có sản phẩm để thanh toán.'}.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request. Pattern { Count: > 0 } không khớp mảng rỗng và rơi vào nhánh else.",
+                  "pm.test('TC_CART_040 - Truyền selectedCartItemIds rỗng [] báo lỗi 400 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_040`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** selectedCartItemIds chứa mảng rỗng [] và không có buyNowProductId\n**Kết quả mong đợi:** HTTP 400 Bad Request. JSON {message: 'Không có sản phẩm để thanh toán.'}.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request. Pattern { Count: > 0 } không khớp mảng rỗng và rơi vào nhánh else.\n**Đánh giá:** **PASS** (Truyền selectedCartItemIds rỗng [] báo lỗi 400)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"Empty Array\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"selectedCartItemIds\": []}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_041 - [PASS] Từ chối khi trường bắt buộc là null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_041 | Loại: Negative | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request.",
+                  "// Thực tế trên code (Actual): HTTP 400 hoặc 500 (PostgresException 23502: null value in column 'customer_name' violates not-null constraint).",
+                  "pm.test('TC_CART_041 - Từ chối khi trường bắt buộc là null (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_041`\n**Chức năng:** Thanh toán\n**Loại TC:** Negative | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Truyền customerName = null trong JSON\n**Kết quả mong đợi:** HTTP 400 Bad Request.\n**Kết quả thực tế (Code):** HTTP 400 hoặc 500 (PostgresException 23502: null value in column 'customer_name' violates not-null constraint).\n**Đánh giá:** **PASS** (Từ chối khi trường bắt buộc là null)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": null, \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 117, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_042 - [PASS] Xem giỏ hàng khi giỏ đang trống",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_042 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 200 OK. Trả về {items: [], total: 0}.",
+                  "// Thực tế trên code (Actual): HTTP 200 OK. items=[], total=0.",
+                  "pm.test('TC_CART_042 - Xem giỏ hàng khi giỏ đang trống (Expected HTTP 200)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_042`\n**Chức năng:** Giỏ hàng\n**Loại TC:** Boundary | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Giỏ hàng trống\n**Kết quả mong đợi:** HTTP 200 OK. Trả về {items: [], total: 0}.\n**Kết quả thực tế (Code):** HTTP 200 OK. items=[], total=0.\n**Đánh giá:** **PASS** (Xem giỏ hàng khi giỏ đang trống)"
+          }
+        },
+        {
+          "name": "TC_CART_043 - [PASS] Tràn số nguyên Int32 ở quantity trả về 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_043 | Loại: Boundary | Trạng thái phân tích tĩnh: PASS",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. JSON deserialization từ chối số vượt quá Int32.",
+                  "// Thực tế trên code (Actual): HTTP 400 Bad Request.",
+                  "pm.test('TC_CART_043 - Tràn số nguyên Int32 ở quantity trả về 400 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "add"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_043`\n**Chức năng:** Thêm vào giỏ\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Truyền quantity vượt giới hạn kiểu Int32\n**Kết quả mong đợi:** HTTP 400 Bad Request. JSON deserialization từ chối số vượt quá Int32.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Tràn số nguyên Int32 ở quantity trả về 400)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": 101, \"quantity\": 999999999999999}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC_CART_044 - [FAIL (Bug)] Bug: customerName > 255 ký tự gây lỗi 500",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Mã TC: TC_CART_044 | Loại: Boundary | Trạng thái phân tích tĩnh: FAIL (Bug)",
+                  "// Kỳ vọng chuẩn (Expected): HTTP 400 Bad Request. Tên khách hàng vượt quá 255 ký tự.",
+                  "// Thực tế trên code (Actual): HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(255).",
+                  "pm.test('TC_CART_044 - Bug: customerName > 255 ký tự gây lỗi 500 (Expected HTTP 400)', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "pm.test('Response trả về định dạng JSON (không phải HTML)', function () {",
+                  "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
+                  "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            },
+            "description": "**Mã Test Case:** `TC_CART_044`\n**Chức năng:** Thanh toán\n**Loại TC:** Boundary | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** customerName dài 300 ký tự\n**Kết quả mong đợi:** HTTP 400 Bad Request. Tên khách hàng vượt quá 255 ký tự.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(255).\n**Đánh giá:** **FAIL (Bug)** (Bug: customerName > 255 ký tự gây lỗi 500)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"customerName\": \"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\", \"customerPhone\": \"0901234567\", \"address\": \"HN\", \"paymentMethod\": \"COD\", \"buyNowProductId\": 117, \"buyNowQuantity\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
