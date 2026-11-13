@@ -80,11 +80,27 @@
       "key": "created_user_id",
       "value": "10",
       "type": "string"
+    },
+    {
+      "key": "deleted_user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fake_jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+      "type": "string"
+    },
+    {
+      "key": "malformed_jwt_token",
+      "value": "not_a_jwt_token_123",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT & Tạo dữ liệu mồi)",
+      "description": "Chạy thư mục này đầu tiên (hoặc bấm Run cả Collection) để tự động lấy JWT Token cho USER và ADMIN.",
       "item": [
         {
           "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
@@ -99,6 +115,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('user_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('user_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -144,6 +161,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('admin_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('admin_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -193,6 +211,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -248,6 +267,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -285,15 +305,105 @@
             },
             "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
           }
+        },
+        {
+          "name": "[AUTO-SETUP 5] Tạo Đơn hàng mồi & Lưu {{created_order_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Setup Order 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.orderId) {",
+                  "        pm.collectionVariables.set('created_order_id', json.orderId);",
+                  "        if (pm.environment) pm.environment.set('created_order_id', json.orderId);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Le Van A\",\n  \"customerPhone\": \"0901234567\",\n  \"address\": \"123 Cầu Giấy, HN\",\n  \"paymentMethod\": \"COD\",\n  \"buyNowProductId\": 102,\n  \"buyNowQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "01_Auth_TaiKhoan",
+      "description": "Module 1: Xác Thực & Tài Khoản (/api/auth/*)",
       "item": [
         {
           "name": "TC_AUTH_001 - [PASS] Happy path đăng nhập bằng Email",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Đảm bảo tài khoản User Seed (taobattu@gmail.com, SĐT 0900000001) và Admin Seed ở trạng thái chuẩn",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "pm.sendRequest({",
+                  "    url: baseUrl + '/api/auth/login',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: 'taobattu@gmail.com', password: 'Abc123@' }) }",
+                  "}, function (err, res) {",
+                  "    if (!err && res && res.code === 200) {",
+                  "        var j = res.json();",
+                  "        if (j && j.token) {",
+                  "            pm.collectionVariables.set('user_token', j.token);",
+                  "            if (pm.environment) pm.environment.set('user_token', j.token);",
+                  "            pm.sendRequest({",
+                  "                url: baseUrl + '/api/profile',",
+                  "                method: 'PUT',",
+                  "                header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + j.token },",
+                  "                body: { mode: 'raw', raw: JSON.stringify({ fullName: 'User Seed', phone: '0900000001', address: '123 Đường Láng, Hà Nội' }) }",
+                  "            }, function () {});",
+                  "        }",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -999,6 +1109,24 @@
           "name": "TC_AUTH_013 - [FAIL (Bug)] Bug bảo mật: Không giới hạn Brute-force login",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Gửi liên tiếp các request sai mật khẩu trước request thứ 20 để kiểm tra Rate Limiting / Account Lockout",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "for (var i = 0; i < 5; i++) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/auth/login',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: 'taobattu@gmail.com', password: 'BruteForceWrongPass_' + i }) }",
+                  "    }, function () {});",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1057,6 +1185,57 @@
           "name": "TC_AUTH_014 - [PASS] Happy path đăng ký tài khoản mới",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Dọn dẹp các user test (id > 2) đã tạo từ lần chạy trước để dữ liệu đầu vào khớp 100% mô tả TestCase.xlsx",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "function cleanUsers(token) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/admin/users?page=0&size=200',",
+                  "        method: 'GET',",
+                  "        header: { 'Authorization': 'Bearer ' + token }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var data = res.json();",
+                  "            var users = data.users || [];",
+                  "            users.forEach(function (u) {",
+                  "                if (u.id > 2) {",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/users/' + u.id,",
+                  "                        method: 'DELETE',",
+                  "                        header: { 'Authorization': 'Bearer ' + token }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "}",
+                  "if (aToken) {",
+                  "    cleanUsers(aToken);",
+                  "} else {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/auth/login',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: 'Admin@gmail.com', password: 'Abc123@' }) }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var j = res.json();",
+                  "            if (j && j.token) {",
+                  "                pm.collectionVariables.set('admin_token', j.token);",
+                  "                if (pm.environment) pm.environment.set('admin_token', j.token);",
+                  "                cleanUsers(j.token);",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1106,7 +1285,7 @@
             "description": "**Mã Test Case:** `TC_AUTH_014`\n**Chức năng:** Đăng ký\n**Loại TC:** Positive | **Độ ưu tiên:** High\n**Điều kiện tiên quyết:** Email & SĐT chưa tồn tại trong DB\n**Kết quả mong đợi:** HTTP 200 OK. JSON {message: 'Đăng ký thành công!', userId: >0}.\n**Kết quả thực tế (Code):** HTTP 200 OK. Tạo user mới với mật khẩu mã hóa BCrypt và role='USER'.\n**Đánh giá:** **PASS** (Happy path đăng ký tài khoản mới)",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Test\",\n  \"email\": \"nvtest_{{$timestamp}}@gmail.com\",\n  \"phone\": \"091{{$randomInt}}\",\n  \"password\": \"Password123@\",\n  \"confirmPassword\": \"Password123@\",\n  \"address\": \"Hà Nội\"\n}",
+              "raw": "{\"fullName\": \"Nguyen Van Test\", \"email\": \"nvtest01@gmail.com\", \"phone\": \"0912345001\", \"password\": \"Password123@\", \"confirmPassword\": \"Password123@\", \"address\": \"Hà Nội\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1307,7 +1486,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1365,7 +1559,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1423,7 +1632,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1481,7 +1705,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1539,7 +1778,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1597,7 +1851,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1655,7 +1924,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1713,7 +1997,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1771,7 +2070,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1829,7 +2143,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1887,7 +2216,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -1945,7 +2289,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2003,7 +2362,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2034,7 +2408,7 @@
             "description": "**Mã Test Case:** `TC_AUTH_030`\n**Chức năng:** Đăng ký\n**Loại TC:** Boundary | **Độ ưu tiên:** Medium\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 400 Bad Request. Họ tên không vượt quá 255 ký tự.\n**Kết quả thực tế (Code):** HTTP 500 Internal Server Error! PostgresException 22001: value too long for type character varying(255).\n**Đánh giá:** **FAIL (Bug)** (Bug: fullName > 255 ký tự gây lỗi 500)",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\n  \"email\": \"longname_{{$timestamp}}@gmail.com\",\n  \"phone\": \"092{{$randomInt}}\",\n  \"password\": \"Abc123@\",\n  \"confirmPassword\": \"Abc123@\",\n  \"address\": \"HN\"\n}",
+              "raw": "{\"fullName\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"email\": \"longname@gmail.com\", \"phone\": \"0911000008\", \"password\": \"Abc123@\", \"confirmPassword\": \"Abc123@\", \"address\": \"HN\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2061,7 +2435,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2119,7 +2508,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2177,7 +2581,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2235,7 +2654,22 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Tự động dọn dẹp user rác vừa tạo (nếu API trả về 200 OK) để không gây trùng lặp dữ liệu ở lần chạy sau",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        var rJson = pm.response.json();",
+                  "        var aTok = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "        var bUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "        if (rJson && rJson.userId && rJson.userId > 2 && aTok) {",
+                  "            pm.sendRequest({",
+                  "                url: bUrl + '/api/admin/users/' + rJson.userId,",
+                  "                method: 'DELETE',",
+                  "                header: { 'Authorization': 'Bearer ' + aTok }",
+                  "            }, function () {});",
+                  "        }",
+                  "    } catch (e) {}",
+                  "}"
                 ]
               }
             }
@@ -2351,7 +2785,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature"
+                "value": "Bearer {{fake_jwt_token}}"
               }
             ],
             "url": {
@@ -2399,7 +2833,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer not_a_jwt_token_123"
+                "value": "Bearer {{malformed_jwt_token}}"
               }
             ],
             "url": {
@@ -2556,7 +2990,101 @@
             "description": "**Mã Test Case:** `TC_AUTH_040`\n**Chức năng:** Đăng nhập\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Không có\n**Kết quả mong đợi:** HTTP 405 Method Not Allowed.\n**Kết quả thực tế (Code):** HTTP 405 Method Not Allowed.\n**Đánh giá:** **PASS** (Sai HTTP Method trên endpoint login)"
           }
         }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+              "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+              "function setVar(k, v) {",
+              "    pm.collectionVariables.set(k, String(v));",
+              "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+              "}",
+              "function getVar(k) {",
+              "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+              "}",
+              "var uToken = getVar('user_token');",
+              "var aToken = getVar('admin_token');",
+              "if (!uToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('user_token', j.token);",
+              "        }",
+              "    });",
+              "}",
+              "if (!aToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('admin_token', j.token);",
+              "        }",
+              "    });",
+              "}"
+            ]
+          }
+        }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+          "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+          "function setVar(k, v) {",
+          "    pm.collectionVariables.set(k, String(v));",
+          "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+          "}",
+          "function getVar(k) {",
+          "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+          "}",
+          "var uToken = getVar('user_token');",
+          "var aToken = getVar('admin_token');",
+          "if (!uToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('user_token', j.token);",
+          "        }",
+          "    });",
+          "}",
+          "if (!aToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('admin_token', j.token);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
     }
   ]
 }

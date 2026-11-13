@@ -15,7 +15,12 @@ public class UserController : ControllerBase
     private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
     [HttpGet]
-    public async Task<IActionResult> GetProfile() => Ok(await _service.GetByIdAsync(UserId));
+    public async Task<IActionResult> GetProfile()
+    {
+        var user = await _service.GetByIdAsync(UserId);
+        if (user == null) return NotFound(new { message = "Không tìm thấy người dùng." });
+        return Ok(user);
+    }
 
     public class UpdateProfileDto
     {

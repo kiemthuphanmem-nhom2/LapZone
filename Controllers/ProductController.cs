@@ -19,17 +19,18 @@ public class ProductController : ControllerBase
         return Ok(new { product, relatedProducts = related });
     }
 
-    // GET /api/products?query=...&categoryId=...&page=0&size=9
+    // GET /api/products?query=...&keyword=...&categoryId=...&page=0&size=9
     [HttpGet]
     [HttpGet("/api/search")]
     public async Task<IActionResult> Search(
-        [FromQuery] string? query, [FromQuery] int? categoryId,
+        [FromQuery] string? query, [FromQuery] string? keyword, [FromQuery] int? categoryId,
         [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice,
         [FromQuery] string? cpu, [FromQuery] string? gpu, [FromQuery] string? ram,
         [FromQuery] string? storage, [FromQuery] string? screen,
-        [FromQuery] string sort = "newest", [FromQuery] int page = 0, [FromQuery] int size = 9)
+        [FromQuery] string sort = "newest", [FromQuery] int page = 0, [FromQuery] int size = 12)
     {
-        var (items, total) = await _service.SearchAsync(query, categoryId, minPrice, maxPrice,
+        var effectiveKeyword = !string.IsNullOrEmpty(keyword) ? keyword : query;
+        var (items, total) = await _service.SearchAsync(effectiveKeyword, categoryId, minPrice, maxPrice,
             cpu, gpu, ram, storage, screen, sort, page, size);
         return Ok(new
         {

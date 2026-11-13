@@ -80,11 +80,27 @@
       "key": "created_user_id",
       "value": "10",
       "type": "string"
+    },
+    {
+      "key": "deleted_user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fake_jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+      "type": "string"
+    },
+    {
+      "key": "malformed_jwt_token",
+      "value": "not_a_jwt_token_123",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT & Tạo dữ liệu mồi)",
+      "description": "Chạy thư mục này đầu tiên (hoặc bấm Run cả Collection) để tự động lấy JWT Token cho USER và ADMIN.",
       "item": [
         {
           "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
@@ -99,6 +115,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('user_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('user_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -144,6 +161,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('admin_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('admin_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -193,6 +211,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -248,6 +267,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -285,15 +305,153 @@
             },
             "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
           }
+        },
+        {
+          "name": "[AUTO-SETUP 5] Tạo Đơn hàng mồi & Lưu {{created_order_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Setup Order 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.orderId) {",
+                  "        pm.collectionVariables.set('created_order_id', json.orderId);",
+                  "        if (pm.environment) pm.environment.set('created_order_id', json.orderId);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Le Van A\",\n  \"customerPhone\": \"0901234567\",\n  \"address\": \"123 Cầu Giấy, HN\",\n  \"paymentMethod\": \"COD\",\n  \"buyNowProductId\": 102,\n  \"buyNowQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "03_GioHang_ThanhToan",
+      "description": "Module 3: Giỏ Hàng & Thanh Toán (/api/cart, /api/checkout)",
       "item": [
         {
           "name": "TC_CART_001 - [PASS] Xem giỏ hàng khi đã đăng nhập",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "function setVar(k, v) {",
+                  "    pm.collectionVariables.set(k, String(v));",
+                  "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+                  "}",
+                  "function getVar(k) {",
+                  "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+                  "}",
+                  "var uToken = getVar('user_token');",
+                  "var aToken = getVar('admin_token');",
+                  "if (!uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/auth/login',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var j = res.json();",
+                  "            if (j && j.token) setVar('user_token', j.token);",
+                  "        }",
+                  "    });",
+                  "}",
+                  "if (!aToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/auth/login',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var j = res.json();",
+                  "            if (j && j.token) setVar('admin_token', j.token);",
+                  "        }",
+                  "    });",
+                  "}",
+                  "// Khôi phục tồn kho chuẩn cho các sản phẩm test (1->2, 13->0, 101->15, 102->20, 103->18, 105->25, 109->3, 117->12)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (aToken) {",
+                  "    var stockMap = { '1': 2, '13': 0, '101': 15, '102': 20, '103': 18, '105': 25, '109': 3, '117': 12 };",
+                  "    Object.keys(stockMap).forEach(function (pid) {",
+                  "        var targetStock = stockMap[pid];",
+                  "        pm.sendRequest({ url: baseUrl + '/api/products/' + pid, method: 'GET' }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var p = (res.json() || {}).product;",
+                  "                if (p && p.stock !== targetStock) {",
+                  "                    p.stock = targetStock;",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/products/save',",
+                  "                        method: 'POST',",
+                  "                        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "                        body: { mode: 'raw', raw: JSON.stringify(p) }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}",
+                  "var curUToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (curUToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + curUToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 1 }) }",
+                  "    }, function () {});",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -387,6 +545,35 @@
           "name": "TC_CART_003 - [PASS] Thêm sản phẩm còn hàng vào giỏ",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Làm sạch giỏ hàng trước khi thêm mới SP 101 với quantity = 2",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart',",
+                  "        method: 'GET',",
+                  "        header: { 'Authorization': 'Bearer ' + uToken }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var items = (res.json() || {}).items || [];",
+                  "            items.forEach(function (it) {",
+                  "                pm.sendRequest({",
+                  "                    url: baseUrl + '/api/cart/' + it.id,",
+                  "                    method: 'DELETE',",
+                  "                    header: { 'Authorization': 'Bearer ' + uToken }",
+                  "                }, function () {});",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -448,6 +635,44 @@
         {
           "name": "TC_CART_004 - [PASS] Cộng dồn số lượng khi thêm trùng sản phẩm vào giỏ",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo SP ID 101 đang có trong giỏ với quantity = 2 trước khi cộng dồn thêm 1 (thành 3)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart',",
+                  "        method: 'GET',",
+                  "        header: { 'Authorization': 'Bearer ' + uToken }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var items = (res.json() || {}).items || [];",
+                  "            var sp101 = items.find(function (x) { return x.productId === 101; });",
+                  "            if (!sp101) {",
+                  "                pm.sendRequest({",
+                  "                    url: baseUrl + '/api/cart/add',",
+                  "                    method: 'POST',",
+                  "                    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "                    body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 2 }) }",
+                  "                }, function () {});",
+                  "            } else if (sp101.quantity !== 2) {",
+                  "                pm.sendRequest({",
+                  "                    url: baseUrl + '/api/cart/update',",
+                  "                    method: 'PUT',",
+                  "                    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "                    body: { mode: 'raw', raw: JSON.stringify({ cartItemId: sp101.id, quantity: 2 }) }",
+                  "                }, function () {});",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -879,6 +1104,40 @@
           "name": "TC_CART_011 - [PASS] Cập nhật số lượng sản phẩm trong giỏ hợp lệ",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo có cart_item_id hợp lệ trong giỏ của User",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + uToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                var target = items.find(function (x) { return x.productId === 101; }) || items[0];",
+                  "                if (target) {",
+                  "                    pm.collectionVariables.set('cart_item_id', target.id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', target.id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -940,6 +1199,40 @@
         {
           "name": "TC_CART_012 - [PASS] Cập nhật quantity = 0 tự động xóa item khỏi giỏ",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo có cart_item_id hợp lệ trước khi cập nhật quantity = 0 (xóa khỏi giỏ)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + uToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                var target = items.find(function (x) { return x.productId === 101; }) || items[0];",
+                  "                if (target) {",
+                  "                    pm.collectionVariables.set('cart_item_id', target.id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', target.id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1003,6 +1296,40 @@
           "name": "TC_CART_013 - [PASS] Cập nhật quantity vượt quá tồn kho tự động giới hạn bằng stock",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo có cart_item_id của SP ID 1 (stock = 2) để kiểm tra giới hạn tồn kho",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 1, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + uToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                var target = items.find(function (x) { return x.productId === 1; }) || items[0];",
+                  "                if (target) {",
+                  "                    pm.collectionVariables.set('cart_item_id', target.id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', target.id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1064,6 +1391,39 @@
         {
           "name": "TC_CART_014 - [FAIL (Bug)] Bug bảo mật nghiêm trọng (IDOR): Sửa/xóa giỏ hàng của user khác qua PUT /api/cart/update",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo User B (Admin) có admin_cart_item_id trong giỏ để kiểm tra IDOR",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "if (aToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 102, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + aToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                if (items.length > 0) {",
+                  "                    pm.collectionVariables.set('admin_cart_item_id', items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', items[0].id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1189,6 +1549,40 @@
           "name": "TC_CART_016 - [PASS] Xóa sản phẩm khỏi giỏ hàng hợp lệ",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo có cart_item_id hợp lệ của User để gọi DELETE /api/cart/{{cart_item_id}}",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + uToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                var target = items.find(function (x) { return x.productId === 101; }) || items[0];",
+                  "                if (target) {",
+                  "                    pm.collectionVariables.set('cart_item_id', target.id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', target.id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1237,6 +1631,39 @@
         {
           "name": "TC_CART_017 - [FAIL (Bug)] Bug bảo mật nghiêm trọng (IDOR): Xóa bất kỳ cart item của user khác qua DELETE /api/cart/{id}",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo User B (Admin) có admin_cart_item_id trong giỏ để kiểm tra IDOR DELETE",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "if (aToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 102, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + aToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                if (items.length > 0) {",
+                  "                    pm.collectionVariables.set('admin_cart_item_id', items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', items[0].id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1346,6 +1773,7 @@
                   "if (pm.response.code === 200) {",
                   "    var j = pm.response.json();",
                   "    if (j && j.orderId) pm.collectionVariables.set('created_order_id', j.orderId);",
+                  "    if (pm.environment) pm.environment.set('created_order_id', j.orderId);",
                   "}",
                   "pm.test('TC_CART_019 - Thanh toán Mua ngay (BuyNow) khách vãng lai với COD (Expected HTTP 200)', function () {",
                   "    pm.expect(pm.response.code).to.equal(200);",
@@ -1517,6 +1945,40 @@
         {
           "name": "TC_CART_022 - [PASS] Thanh toán từ giỏ hàng (selectedCartItemIds) hợp lệ",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo User có cart_item_id hợp lệ trong giỏ trước khi thanh toán qua selectedCartItemIds",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + uToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 101, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + uToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                var target = items.find(function (x) { return x.productId === 101; }) || items[0];",
+                  "                if (target) {",
+                  "                    pm.collectionVariables.set('cart_item_id', target.id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', target.id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1870,6 +2332,38 @@
           "name": "TC_CART_028 - [FAIL (Bug)] Bug nghiêm trọng: Cho phép đặt mua thành công sản phẩm đã hết hàng (stock=0)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Khôi phục tồn kho chuẩn cho các sản phẩm test (1->2, 13->0, 101->15, 102->20, 103->18, 105->25, 109->3, 117->12)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (aToken) {",
+                  "    var stockMap = { '1': 2, '13': 0, '101': 15, '102': 20, '103': 18, '105': 25, '109': 3, '117': 12 };",
+                  "    Object.keys(stockMap).forEach(function (pid) {",
+                  "        var targetStock = stockMap[pid];",
+                  "        pm.sendRequest({ url: baseUrl + '/api/products/' + pid, method: 'GET' }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var p = (res.json() || {}).product;",
+                  "                if (p && p.stock !== targetStock) {",
+                  "                    p.stock = targetStock;",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/products/save',",
+                  "                        method: 'POST',",
+                  "                        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "                        body: { mode: 'raw', raw: JSON.stringify(p) }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1928,6 +2422,38 @@
           "name": "TC_CART_029 - [FAIL (Bug)] Bug nghiêm trọng: Mua ngay không kiểm tra vượt quá số lượng tồn kho",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Khôi phục tồn kho chuẩn cho các sản phẩm test (1->2, 13->0, 101->15, 102->20, 103->18, 105->25, 109->3, 117->12)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (aToken) {",
+                  "    var stockMap = { '1': 2, '13': 0, '101': 15, '102': 20, '103': 18, '105': 25, '109': 3, '117': 12 };",
+                  "    Object.keys(stockMap).forEach(function (pid) {",
+                  "        var targetStock = stockMap[pid];",
+                  "        pm.sendRequest({ url: baseUrl + '/api/products/' + pid, method: 'GET' }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var p = (res.json() || {}).product;",
+                  "                if (p && p.stock !== targetStock) {",
+                  "                    p.stock = targetStock;",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/products/save',",
+                  "                        method: 'POST',",
+                  "                        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "                        body: { mode: 'raw', raw: JSON.stringify(p) }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1942,7 +2468,31 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
-                  "});"
+                  "});",
+                  "// Khôi phục tồn kho chuẩn cho các sản phẩm test (1->2, 13->0, 101->15, 102->20, 103->18, 105->25, 109->3, 117->12)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (aToken) {",
+                  "    var stockMap = { '1': 2, '13': 0, '101': 15, '102': 20, '103': 18, '105': 25, '109': 3, '117': 12 };",
+                  "    Object.keys(stockMap).forEach(function (pid) {",
+                  "        var targetStock = stockMap[pid];",
+                  "        pm.sendRequest({ url: baseUrl + '/api/products/' + pid, method: 'GET' }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var p = (res.json() || {}).product;",
+                  "                if (p && p.stock !== targetStock) {",
+                  "                    p.stock = targetStock;",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/products/save',",
+                  "                        method: 'POST',",
+                  "                        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "                        body: { mode: 'raw', raw: JSON.stringify(p) }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
                 ]
               }
             }
@@ -1985,6 +2535,39 @@
         {
           "name": "TC_CART_030 - [FAIL (Bug)] Bug nghiêm trọng (Logic + IDOR): Truyền selectedCartItemIds của người khác tạo đơn 0đ và xóa giỏ hàng của nạn nhân",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo User B (Admin) có admin_cart_item_id để kiểm tra thanh toán giỏ hàng của người khác",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "if (aToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart/add',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({ productId: 102, quantity: 1 }) }",
+                  "    }, function () {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/cart',",
+                  "            method: 'GET',",
+                  "            header: { 'Authorization': 'Bearer ' + aToken }",
+                  "        }, function (err, res) {",
+                  "            if (!err && res && res.code === 200) {",
+                  "                var items = (res.json() || {}).items || [];",
+                  "                if (items.length > 0) {",
+                  "                    pm.collectionVariables.set('admin_cart_item_id', items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', items[0].id);",
+                  "                }",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2236,6 +2819,9 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_CART_034 - Không được để lọt lỗi SQL 22001 xuống Database (Expected Clean Validation)', function () {",
+                  "    pm.expect(pm.response.text()).to.not.include('22001');",
                   "});"
                 ]
               }
@@ -2410,6 +2996,9 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_CART_037 - Không được để lọt lỗi SQL 22001 xuống Database (Expected Clean Validation)', function () {",
+                  "    pm.expect(pm.response.text()).to.not.include('22001');",
                   "});"
                 ]
               }
@@ -2686,6 +3275,35 @@
           "name": "TC_CART_042 - [PASS] Xem giỏ hàng khi giỏ đang trống",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Giỏ hàng trống (Xóa toàn bộ cart items hiện có của User trước khi gọi GET /api/cart)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var uToken = pm.collectionVariables.get('user_token') || pm.environment.get('user_token');",
+                  "if (uToken) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/cart',",
+                  "        method: 'GET',",
+                  "        header: { 'Authorization': 'Bearer ' + uToken }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var items = (res.json() || {}).items || [];",
+                  "            items.forEach(function (it) {",
+                  "                pm.sendRequest({",
+                  "                    url: baseUrl + '/api/cart/' + it.id,",
+                  "                    method: 'DELETE',",
+                  "                    header: { 'Authorization': 'Bearer ' + uToken }",
+                  "                }, function () {});",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -2700,6 +3318,11 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_CART_042 - Giỏ hàng trống trả về items=[] và total=0', function () {",
+                  "    var j = pm.response.json();",
+                  "    pm.expect(j.items).to.be.an('array').that.is.empty;",
+                  "    pm.expect(j.total).to.equal(0);",
                   "});"
                 ]
               }
@@ -2810,6 +3433,9 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_CART_044 - Không được để lọt lỗi SQL 22001 xuống Database (Expected Clean Validation)', function () {",
+                  "    pm.expect(pm.response.text()).to.not.include('22001');",
                   "});"
                 ]
               }
@@ -2850,7 +3476,101 @@
             }
           }
         }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+              "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+              "function setVar(k, v) {",
+              "    pm.collectionVariables.set(k, String(v));",
+              "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+              "}",
+              "function getVar(k) {",
+              "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+              "}",
+              "var uToken = getVar('user_token');",
+              "var aToken = getVar('admin_token');",
+              "if (!uToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('user_token', j.token);",
+              "        }",
+              "    });",
+              "}",
+              "if (!aToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('admin_token', j.token);",
+              "        }",
+              "    });",
+              "}"
+            ]
+          }
+        }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+          "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+          "function setVar(k, v) {",
+          "    pm.collectionVariables.set(k, String(v));",
+          "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+          "}",
+          "function getVar(k) {",
+          "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+          "}",
+          "var uToken = getVar('user_token');",
+          "var aToken = getVar('admin_token');",
+          "if (!uToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('user_token', j.token);",
+          "        }",
+          "    });",
+          "}",
+          "if (!aToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('admin_token', j.token);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
     }
   ]
 }

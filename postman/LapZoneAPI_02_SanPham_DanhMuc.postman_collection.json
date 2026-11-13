@@ -80,11 +80,27 @@
       "key": "created_user_id",
       "value": "10",
       "type": "string"
+    },
+    {
+      "key": "deleted_user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fake_jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+      "type": "string"
+    },
+    {
+      "key": "malformed_jwt_token",
+      "value": "not_a_jwt_token_123",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "00_AUTO_SETUP (Tự động Login lấy JWT)",
+      "name": "00_AUTO_SETUP (Tự động Login lấy JWT & Tạo dữ liệu mồi)",
+      "description": "Chạy thư mục này đầu tiên (hoặc bấm Run cả Collection) để tự động lấy JWT Token cho USER và ADMIN.",
       "item": [
         {
           "name": "[AUTO-SETUP 1] Đăng nhập USER & Lưu {{user_token}}",
@@ -99,6 +115,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('user_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('user_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -144,6 +161,7 @@
                   "    var json = pm.response.json();",
                   "    if (json && json.token) {",
                   "        pm.collectionVariables.set('admin_token', json.token);",
+                  "        if (pm.environment) pm.environment.set('admin_token', json.token);",
                   "    }",
                   "});"
                 ]
@@ -193,6 +211,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -248,6 +267,7 @@
                   "        var data = res.json();",
                   "        if (data.items && data.items.length > 0) {",
                   "            pm.collectionVariables.set('admin_cart_item_id', data.items[0].id);",
+                  "                    if (pm.environment) pm.environment.set('admin_cart_item_id', data.items[0].id);",
                   "        }",
                   "    }",
                   "});",
@@ -285,15 +305,117 @@
             },
             "description": "Tự động thêm sản phẩm vào giỏ Admin và lưu {{admin_cart_item_id}} phục vụ test IDOR."
           }
+        },
+        {
+          "name": "[AUTO-SETUP 5] Tạo Đơn hàng mồi & Lưu {{created_order_id}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-Setup Order 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    if (json && json.orderId) {",
+                  "        pm.collectionVariables.set('created_order_id', json.orderId);",
+                  "        if (pm.environment) pm.environment.set('created_order_id', json.orderId);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Le Van A\",\n  \"customerPhone\": \"0901234567\",\n  \"address\": \"123 Cầu Giấy, HN\",\n  \"paymentMethod\": \"COD\",\n  \"buyNowProductId\": 102,\n  \"buyNowQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/checkout/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "process"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "02_SanPham_DanhMuc",
+      "description": "Module 2: Sản Phẩm & Danh Mục (/api/products, /api/categories)",
       "item": [
         {
           "name": "TC_PROD_001 - [PASS] Lấy danh sách tất cả danh mục",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Đảm bảo DB đúng 7 danh mục gốc (1..7) và 40 sản phẩm gốc trước khi chạy Module 2",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "if (aToken) {",
+                  "    pm.sendRequest({ url: baseUrl + '/api/categories', method: 'GET' }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var cats = res.json() || [];",
+                  "            cats.forEach(function (c) {",
+                  "                if (c.id > 7) {",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/categories/' + c.id,",
+                  "                        method: 'DELETE',",
+                  "                        header: { 'Authorization': 'Bearer ' + aToken }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "    pm.sendRequest({ url: baseUrl + '/api/products?page=0&size=200', method: 'GET' }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var pData = res.json();",
+                  "            var prods = (pData && (pData.products || pData.items)) || [];",
+                  "            prods.forEach(function (p) {",
+                  "                if (p.id > 140) {",
+                  "                    pm.sendRequest({",
+                  "                        url: baseUrl + '/api/admin/products/' + p.id,",
+                  "                        method: 'DELETE',",
+                  "                        header: { 'Authorization': 'Bearer ' + aToken }",
+                  "                    }, function () {});",
+                  "                }",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -411,7 +533,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/search?keyword=Dell",
+              "raw": "{{base_url}}/api/search?keyword=Dell&query=Dell",
               "host": [
                 "{{base_url}}"
               ],
@@ -422,6 +544,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "Dell"
+                },
+                {
+                  "key": "query",
                   "value": "Dell"
                 }
               ]
@@ -461,7 +587,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=macbook",
+              "raw": "{{base_url}}/api/products?keyword=macbook&query=macbook",
               "host": [
                 "{{base_url}}"
               ],
@@ -472,6 +598,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "macbook"
+                },
+                {
+                  "key": "query",
                   "value": "macbook"
                 }
               ]
@@ -511,7 +641,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=Dolby",
+              "raw": "{{base_url}}/api/products?keyword=Dolby&query=Dolby",
               "host": [
                 "{{base_url}}"
               ],
@@ -522,6 +652,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "Dolby"
+                },
+                {
+                  "key": "query",
                   "value": "Dolby"
                 }
               ]
@@ -561,7 +695,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=XYZ_NON_EXISTENT_9999",
+              "raw": "{{base_url}}/api/products?keyword=XYZ_NON_EXISTENT_9999&query=XYZ_NON_EXISTENT_9999",
               "host": [
                 "{{base_url}}"
               ],
@@ -572,6 +706,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "XYZ_NON_EXISTENT_9999"
+                },
+                {
+                  "key": "query",
                   "value": "XYZ_NON_EXISTENT_9999"
                 }
               ]
@@ -1537,6 +1675,11 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_PROD_025 - Khi vượt quá số trang, totalElements vẫn phải giữ tổng số 40 SP (Expected 40)', function () {",
+                  "    var j = pm.response.json();",
+                  "    var total = j.totalElements !== undefined ? j.totalElements : j.totalItems;",
+                  "    pm.expect(total).to.equal(40);",
                   "});"
                 ]
               }
@@ -1807,6 +1950,11 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_PROD_030 - Ký tự đại diện % phải được escape, không được khớp toàn bộ SP (Expected 0 items)', function () {",
+                  "    var j = pm.response.json();",
+                  "    var items = j.products || j.items || [];",
+                  "    pm.expect(items.length).to.equal(0);",
                   "});"
                 ]
               }
@@ -1821,7 +1969,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=%25",
+              "raw": "{{base_url}}/api/products?keyword=%25&query=%25",
               "host": [
                 "{{base_url}}"
               ],
@@ -1832,6 +1980,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "%25"
+                },
+                {
+                  "key": "query",
                   "value": "%25"
                 }
               ]
@@ -1857,6 +2009,11 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_PROD_031 - Ký tự đại diện _ phải được escape, không được khớp toàn bộ SP (Expected 0 items)', function () {",
+                  "    var j = pm.response.json();",
+                  "    var items = j.products || j.items || [];",
+                  "    pm.expect(items.length).to.equal(0);",
                   "});"
                 ]
               }
@@ -1871,7 +2028,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=_",
+              "raw": "{{base_url}}/api/products?keyword=_&query=_",
               "host": [
                 "{{base_url}}"
               ],
@@ -1882,6 +2039,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "_"
+                },
+                {
+                  "key": "query",
                   "value": "_"
                 }
               ]
@@ -1921,7 +2082,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/products?keyword=%27%20OR%201%3D1--",
+              "raw": "{{base_url}}/api/products?keyword=%27%20OR%201%3D1--&query=%27%20OR%201%3D1--",
               "host": [
                 "{{base_url}}"
               ],
@@ -1932,6 +2093,10 @@
               "query": [
                 {
                   "key": "keyword",
+                  "value": "%27%20OR%201%3D1--"
+                },
+                {
+                  "key": "query",
                   "value": "%27%20OR%201%3D1--"
                 }
               ]
@@ -2047,6 +2212,11 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_PROD_035 - Chi tiết SP phải trả kèm danh sách ảnh phụ từ bảng product_images (Expected 5 images)', function () {",
+                  "    var j = pm.response.json();",
+                  "    var imgs = (j.product && j.product.images) || j.images;",
+                  "    pm.expect(imgs).to.be.an('array').that.is.not.empty;",
                   "});"
                 ]
               }
@@ -2092,6 +2262,13 @@
                   "    if (pm.response.code !== 401 && pm.response.code !== 403 && pm.response.code !== 404 && pm.response.code !== 405) {",
                   "        pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json');",
                   "    }",
+                  "});",
+                  "pm.test('TC_PROD_036 - Các sản phẩm trong relatedProducts phải có thông tin tồn kho thực tế (Expected stock > 0)', function () {",
+                  "    var j = pm.response.json();",
+                  "    var rel = j.relatedProducts || [];",
+                  "    pm.expect(rel.length).to.be.above(0);",
+                  "    var anyStock = rel.some(function (p) { return p.stock > 0; });",
+                  "    pm.expect(anyStock).to.be.true;",
                   "});"
                 ]
               }
@@ -2303,6 +2480,33 @@
           "name": "TC_PROD_041 - [PASS] Xem chi tiết sản phẩm đã hết hàng (stock=0)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pre-condition: Đảm bảo SP ID 13 có stock = 0 (hết hàng)",
+                  "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+                  "var aToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token');",
+                  "if (aToken) {",
+                  "    pm.sendRequest({ url: baseUrl + '/api/products/13', method: 'GET' }, function (err, res) {",
+                  "        if (!err && res && res.code === 200) {",
+                  "            var p = (res.json() || {}).product;",
+                  "            if (p && p.stock !== 0) {",
+                  "                p.stock = 0;",
+                  "                pm.sendRequest({",
+                  "                    url: baseUrl + '/api/admin/products/save',",
+                  "                    method: 'POST',",
+                  "                    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aToken },",
+                  "                    body: { mode: 'raw', raw: JSON.stringify(p) }",
+                  "                }, function () {});",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -2394,7 +2598,101 @@
             "description": "**Mã Test Case:** `TC_PROD_042`\n**Chức năng:** Danh sách SP\n**Loại TC:** Negative | **Độ ưu tiên:** Low\n**Điều kiện tiên quyết:** Tham số giá sai kiểu dữ liệu\n**Kết quả mong đợi:** HTTP 400 Bad Request. Model binding báo lỗi kiểu dữ liệu decimal.\n**Kết quả thực tế (Code):** HTTP 400 Bad Request.\n**Đánh giá:** **PASS** (Truyền chữ vào tham số minPrice)"
           }
         }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+              "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+              "function setVar(k, v) {",
+              "    pm.collectionVariables.set(k, String(v));",
+              "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+              "}",
+              "function getVar(k) {",
+              "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+              "}",
+              "var uToken = getVar('user_token');",
+              "var aToken = getVar('admin_token');",
+              "if (!uToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('user_token', j.token);",
+              "        }",
+              "    });",
+              "}",
+              "if (!aToken) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/api/auth/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res && res.code === 200) {",
+              "            var j = res.json();",
+              "            if (j && j.token) setVar('admin_token', j.token);",
+              "        }",
+              "    });",
+              "}"
+            ]
+          }
+        }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// [AUTO-BOOTSTRAP] Tự động đăng nhập lấy user_token & admin_token nếu chưa có",
+          "var baseUrl = pm.collectionVariables.get('base_url') || pm.environment.get('base_url') || 'http://localhost:5084';",
+          "function setVar(k, v) {",
+          "    pm.collectionVariables.set(k, String(v));",
+          "    if (pm.environment && pm.environment.name) pm.environment.set(k, String(v));",
+          "}",
+          "function getVar(k) {",
+          "    return pm.collectionVariables.get(k) || pm.environment.get(k) || '';",
+          "}",
+          "var uToken = getVar('user_token');",
+          "var aToken = getVar('admin_token');",
+          "if (!uToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('user_email') || 'taobattu@gmail.com', password: getVar('user_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('user_token', j.token);",
+          "        }",
+          "    });",
+          "}",
+          "if (!aToken) {",
+          "    pm.sendRequest({",
+          "        url: baseUrl + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: { mode: 'raw', raw: JSON.stringify({ emailOrPhone: getVar('admin_email') || 'Admin@gmail.com', password: getVar('admin_password') || 'Abc123@' }) }",
+          "    }, function (err, res) {",
+          "        if (!err && res && res.code === 200) {",
+          "            var j = res.json();",
+          "            if (j && j.token) setVar('admin_token', j.token);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
     }
   ]
 }

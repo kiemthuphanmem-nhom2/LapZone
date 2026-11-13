@@ -23,12 +23,18 @@ public class AdminOrderController : ControllerBase
         return Ok(new { orders = items, currentPage = page, totalPages = (int)Math.Ceiling(total / (double)size), totalElements = total });
     }
 
-    public class StatusDto { public int OrderId { get; set; } public string NewStatus { get; set; } = ""; }
+    public class StatusDto
+    {
+        public int OrderId { get; set; }
+        public string NewStatus { get; set; } = "";
+        public string? Status { get; set; }
+    }
 
     [HttpPut("status")]
     public async Task<IActionResult> UpdateStatus([FromBody] StatusDto dto)
     {
-        await _service.UpdateStatusAsync(dto.OrderId, dto.NewStatus);
+        var targetStatus = !string.IsNullOrEmpty(dto.NewStatus) ? dto.NewStatus : (dto.Status ?? "");
+        await _service.UpdateStatusAsync(dto.OrderId, targetStatus);
         return Ok(new { success = true });
     }
 }
