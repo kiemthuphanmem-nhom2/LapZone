@@ -1,0 +1,238 @@
+TC_AUTH_001  PASS  HTTP 200. {"token": "<JWT>
+TC_AUTH_002  PASS  HTTP 200. {"token": "<JWT>
+TC_AUTH_003  PASS  HTTP 200. {"token": "<JWT>
+TC_AUTH_004  PASS  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_005  PASS  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_006  PASS  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_007  FAIL  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_008  FAIL  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_009  FAIL  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_010  FAIL  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_011  PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_AUTH_012  PASS  HTTP 401. {"message": "Sai tài khoản hoặc mật khẩu!"}
+TC_AUTH_013  FAIL  20 request sai mật khẩu → mã trả về: [401] (không có 429/khóa tài khoản)
+TC_AUTH_014  PASS  HTTP 200. {"message": "Đăng ký thành công!", "userId": 3}
+TC_AUTH_015  PASS  HTTP 400. {"message": "Mật khẩu xác nhận không khớp!"}
+TC_AUTH_016  PASS  HTTP 400. {"message": "Email hoặc Số điện thoại đã tồn tại!"}
+TC_AUTH_017  PASS  HTTP 400. {"message": "Email hoặc Số điện thoại đã tồn tại!"}
+TC_AUTH_018  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 4}
+TC_AUTH_019  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 5}
+TC_AUTH_020  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 6}
+TC_AUTH_021  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 7}
+TC_AUTH_022  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 8}
+TC_AUTH_023  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 9}
+TC_AUTH_024  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 10}
+TC_AUTH_025  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 11}
+TC_AUTH_026  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 22001: value too long for type character varying(20)
+TC_AUTH_027  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 13}
+TC_AUTH_028  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 14}
+TC_AUTH_029  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 15}
+TC_AUTH_030  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 22001: value too long for type character varying(255)
+TC_AUTH_031  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 22001: value too long for type character varying(255)
+TC_AUTH_032  FAIL  HTTP 200. {"message": "Đăng ký thành công!", "userId": 18}
+TC_AUTH_033  PASS  HTTP 200. {"message": "Đăng ký thành công!", "userId": 19} | role trong DB = 'USER'
+TC_AUTH_034  PASS  HTTP 200. {"message": "Đăng ký thành công!", "userId": 20} | address DB = NULL
+TC_AUTH_035  PASS  HTTP 401. (body rỗng)
+TC_AUTH_036  PASS  HTTP 401. (body rỗng)
+TC_AUTH_037  PASS  HTTP 401. (body rỗng)
+TC_AUTH_038  PASS  HTTP 403. (body rỗng)
+TC_AUTH_039  PASS  HTTP 401. (body rỗng)
+TC_AUTH_040  PASS  HTTP 405. (body rỗng)
+TC_AUTH_041  PASS  HTTP 401. (body rỗng)
+TC_AUTH_042  PASS  HTTP 401. (body rỗng)
+TC_AUTH_045  PASS  HTTP 200. Payload: iss=LapZoneApi, aud=LapZoneClient, role-claim có USER, thời hạn còn ≈ 120 phút
+TC_AUTH_046  PASS  HTTP 200. {"token": "<JWT>
+TC_PROD_001  PASS  HTTP 200. [{"id": 1, "name": "Acer"}, {"id": 2, "name": "Gigabyte"}, {"id": 3, "name": "Apple"}, {"id": 4, "name": "Asus"}, {"id": 5, "name": "Dell"},
+TC_PROD_002  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_003  PASS  HTTP 200. {"products": [{"id": 109, "name": "Dell Alienware m16 R2 (2024)", "price": 52990000.0, "stock": 3, "image": "assets/dell_alienware_m16_img0.
+TC_PROD_004  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_005  FAIL  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_047  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_006  PASS  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_007  PASS  HTTP 200. {"products": [{"id": 103, "name": "Acer Swift Go 14 OLED (2024)", "price": 19990000.0, "stock": 10, "image": "assets/acer_swift_go14_img0.jp
+TC_PROD_008  PASS  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_009  PASS  HTTP 200. {"products": [{"id": 117, "name": "MacBook Air 13 inch M3 (2024)", "price": 27990000.0, "stock": 30, "image": "assets/macbook_air_13_m3_img0
+TC_PROD_010  PASS  HTTP 200. {"products": [{"id": 114, "name": "HP Victus 16 (2024)", "price": 22990000.0, "stock": 15, "image": "assets/hp_victus_16_img0.jpg", "categor
+TC_PROD_011  FAIL  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_012  FAIL  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_013  PASS  HTTP 200. {"products": [{"id": 111, "name": "Lenovo LOQ 15IRX9 (2024)", "price": 23990000.0, "stock": 25, "image": "assets/lenovo_loq_15_img0.jpg", "c
+TC_PROD_014  PASS  HTTP 200. {"products": [{"id": 113, "name": "HP Omen 16 (2024)", "price": 31500000.0, "stock": 7, "image": "assets/hp_omen_16_img0.jpg", "categoryId":
+TC_PROD_015  PASS  HTTP 200. {"products": [{"id": 21, "name": "Dell Precision 5580", "price": 35000000.0, "stock": 1, "image": "assets/dohoakythuat.webp", "categoryId": 
+TC_PROD_016  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_017  PASS  HTTP 200. {"products": [{"id": 106, "name": "Asus Zenbook S 13 OLED (2024)", "price": 29990000.0, "stock": 5, "image": "assets/asus_zenbook_s13_img0.j
+TC_PROD_018  PASS  HTTP 200. {"products": [{"id": 14, "name": "Thinkbook 14 G7+ 2025 Ultra 5 225H RAM 32GB SSD 1TB 14.5\" 3K 120Hz", "price": 21590000.0, "stock": 1, "im
+TC_PROD_019  PASS  HTTP 200. {"products": [{"id": 13, "name": "Lenovo IdeaPad Slim 3 15IRH10 2025 i5 13420H RAM 16GB SSD 512GB 15.1\" 2.5K OLED 165Hz", "price": 17890000
+TC_PROD_020  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_021  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_022  FAIL  HTTP 200. {"products": [{"id": 2, "name": "Gigabyte Gaming A16 GA6H CMHH2VN893SH i5-13420H… | thứ tự id trả về: [2, 3, 4, 5, 1] (không fallback newest
+TC_PROD_023  PASS  HTTP 200. {"products": [{"id": 106, "name": "Asus Zenbook S 13 OLED (2024)", "price": 29990000.0, "stock": 5, "image": "assets/asus_zenbook_s13_img0.j
+TC_PROD_024  PASS  HTTP 200. {"products": [{"id": 4, "name": "Thinkbook 14 G7+ 2025 Ultra 5 225H RAM 32GB SSD 1TB 14.5\" 3K 120Hz", "price": 21590000.0, "stock": 2, "ima
+TC_PROD_025  FAIL  HTTP 200. {"products": [], "currentPage": 100, "totalPages": 0, "totalElements": 0}
+TC_PROD_026  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 2201X: OFFSET must not be negative
+TC_PROD_027  FAIL  HTTP 200. {"products": [], "currentPage": 0, "totalPages": -2147483648, "totalElements": 0}
+TC_PROD_028  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 2201W: LIMIT must not be negative
+TC_PROD_029  FAIL  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_030  FAIL  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_031  FAIL  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_032  PASS  HTTP 200. {"products": [], "currentPage": 0, "totalPages": 0, "totalElements": 0}
+TC_PROD_033  PASS  HTTP 200. {"product": {"id": 1, "name": "Dell G15 5530 2023 i5-13450HX RAM 16GB SSD 512GB RTX 3050 15.6\" FHD 120Hz", "price": 22990000.0, "stock": 2,
+TC_PROD_034  PASS  HTTP 200. {"product": {"id": 1, "name": "Dell G15 5530 2023 i5-13450HX RAM 16GB SSD 512GB RTX 3050 15.6\" FHD 120Hz", "price": 22990000.0, "stock": 2,
+TC_PROD_035  FAIL  HTTP 200. Khóa JSON: ['product', 'relatedProducts']; product không có trường ảnh phụ (DB có 5 ảnh cho SP 1)
+TC_PROD_036  FAIL  HTTP 200. relatedProducts: [{'id': 109, 'stock': 0, 'categoryId': 0}, {'id': 108, 'stock': 0, 'categoryId': 0}, {'id': 107, 'stock': 0, 'categoryId': 
+TC_PROD_037  PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-21a083dfaf8eb92504b924438
+TC_PROD_038  PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-3f0f9ad5de7ffd269814b6a46
+TC_PROD_039  PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-05abb510a5a2cfa067bab9669
+TC_PROD_040  PASS  HTTP 404. (body rỗng)
+TC_PROD_041  PASS  HTTP 200. {"product": {"id": 13, "name": "Lenovo IdeaPad Slim 3 15IRH10 2025 i5 13420H RAM 16GB SSD 512GB 15.1\" 2.5K OLED 165Hz", "price": 17890000.0
+TC_PROD_042  PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_PROD_043  PASS  HTTP 200. {"products": [{"id": 109, "name": "Dell Alienware m16 R2 (2024)", "price": 52990000.0, "stock": 3, "image": "assets/dell_alienware_m16_img0.
+TC_PROD_044  PASS  HTTP 200. {"products": [{"id": 109, "name": "Dell Alienware m16 R2 (2024)", "price": 52990000.0, "stock": 3, "image": "assets/dell_alienware_m16_img0.
+TC_PROD_045  PASS  HTTP 200. {"products": [{"id": 118, "name": "MacBook Pro 16 inch M3 Max (2024)", "price": 89990000.0, "stock": 5, "image": "assets/macbook_pro_16_m3ma
+TC_PROD_046  PASS  HTTP 200. [{"id": 1, "name": "Acer"}, {"id": 2, "name": "Gigabyte"}, {"id": 3, "name": "Apple"}, {"id": 4, "name": "Asus"}, {"id": 5, "name": "Dell"},
+TC_CART_001  PASS  HTTP 200. {"items": [], "total": 0}
+TC_CART_002  PASS  HTTP 401. (body rỗng)
+TC_CART_003  PASS  HTTP 200. {"success": true} | SP101 trong giỏ qty=2
+TC_CART_004  PASS  HTTP 200. {"success": true} | qty=3
+TC_CART_005  PASS  HTTP 200. {"success": true} | qty SP1=2
+TC_CART_045  PASS  HTTP 200. {"success": true} | qty SP1 sau cộng dồn=2
+TC_CART_006  FAIL  HTTP 200. {"success": true} | giỏ có SP102 qty=0
+TC_CART_007  FAIL  HTTP 200. {"success": true} | SP102 qty=-5, total giỏ=22000000.0
+TC_CART_008  FAIL  HTTP 200. {"success": true} | SP13 qty=0
+TC_CART_009  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 23503: insert or update on table "cart_items" violates foreign key constraint "cart_items_product_id_
+TC_CART_010  PASS  HTTP 401. (body rỗng)
+TC_CART_011  PASS  HTTP 200. {"success": true} | qty=2
+TC_CART_012  PASS  HTTP 200. {"success": true} | item bị xóa
+TC_CART_013  PASS  HTTP 200. {"success": true} | qty SP1=2
+TC_CART_014  FAIL  HTTP 200. {"success": true} | giỏ Admin SP104 qty=1 (bị User A sửa từ 2→1)
+TC_CART_015  FAIL  HTTP 200. {"success": true}
+TC_CART_016  PASS  HTTP 200. {"success": true} | đã xóa
+TC_CART_017  FAIL  HTTP 200. {"success": true} | giỏ Admin SP104: ĐÃ BỊ XÓA
+TC_CART_018  FAIL  HTTP 200. {"success": true}
+TC_CART_019  PASS  HTTP 200. {"orderId": 1, "total": 24590000.0, "paymentMethod": "COD"} | status đơn='CHỜ XÁC NHẬN', stock SP102 20→19
+TC_CART_049  PASS  HTTP 200. {"id": 1, "totalAmount": 24590000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:49.433353", "customerName": "Le Van A", "custo
+TC_CART_020  PASS  HTTP 200. {"orderId": 2, "total": 19990000.0, "paymentMethod": "BANK"} | status='CHỜ THANH TOÁN'
+TC_CART_021  PASS  HTTP 200. {"orderId": 3, "total": 26490000.0, "paymentMethod": "COD"} | user_id đơn=1
+TC_CART_022  PASS  HTTP 200. {"orderId": 4, "total": 65980000.0, "paymentMethod": "COD"} | stock SP101 15→13, item còn trong giỏ: False
+TC_CART_023  PASS  HTTP 401. {"message": "Vui lòng đăng nhập để thanh toán giỏ hàng."}
+TC_CART_048  PASS  HTTP 401. {"message": "Vui lòng đăng nhập để thanh toán giỏ hàng."}
+TC_CART_024  PASS  HTTP 400. {"message": "Không có sản phẩm để thanh toán."}
+TC_CART_025  PASS  HTTP 400. {"message": "Sản phẩm không tồn tại."}
+TC_CART_026  FAIL  HTTP 200. {"orderId": 5, "total": 0.0, "paymentMethod": "COD"}
+TC_CART_027  FAIL  HTTP 200. {"orderId": 6, "total": -73770000.0, "paymentMethod": "COD"} | stock SP102 19→22
+TC_CART_028  FAIL  HTTP 200. {"orderId": 7, "total": 35780000.0, "paymentMethod": "COD"}
+TC_CART_029  FAIL  HTTP 200. {"orderId": 8, "total": 26495000000.0, "paymentMethod": "COD"} | stock SP109 sau=0
+TC_CART_030  FAIL  HTTP 200. {"orderId": 9, "total": 0, "paymentMethod": "COD"} | giỏ Admin SP107: ĐÃ BỊ XÓA; đơn mới total=0.00
+TC_CART_031  FAIL  HTTP 200. {"orderId": 10, "total": 24590000.0, "paymentMethod": "COD"}
+TC_CART_032  FAIL  HTTP 200. {"orderId": 11, "total": 24590000.0, "paymentMethod": "COD"}
+TC_CART_033  FAIL  HTTP 200. {"orderId": 12, "total": 24590000.0, "paymentMethod": "COD"}
+TC_CART_034  FAIL  HTTP 400. {"message": "Có lỗi xảy ra: 22001: value too long for type character varying(20)"}
+TC_CART_035  FAIL  HTTP 200. {"orderId": 14, "total": 24590000.0, "paymentMethod": "COD"}
+TC_CART_036  FAIL  HTTP 200. {"orderId": 15, "total": 24590000.0, "paymentMethod": "FREE_MONEY"}
+TC_CART_037  FAIL  HTTP 400. {"message": "Có lỗi xảy ra: 22001: value too long for type character varying(20)"}
+TC_CART_038  FAIL  HTTP 200. {"orderId": 17, "total": 24590000.0, "paymentMethod": "COD"}
+TC_CART_044  FAIL  HTTP 400. {"message": "Có lỗi xảy ra: 22001: value too long for type character varying(255)"}
+TC_CART_039  PASS  HTTP 200. {"orderId": 19, "total": 27990000.0, "paymentMethod": "COD"}
+TC_CART_040  PASS  HTTP 400. {"message": "Không có sản phẩm để thanh toán."}
+TC_CART_041  PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_CART_042  PASS  HTTP 200. {"items": [], "total": 0}
+TC_CART_043  PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_CART_046  FAIL  HTTP 200. {"orderId": 20, "total": 28990000.0, "paymentMethod": "COD"} | giỏ Admin SP110: ĐÃ BỊ XÓA
+TC_CART_047  FAIL  Lần 1 HTTP 200, lần 2 HTTP 200; tổng đã bán SP2 = 4 chiếc với tồn kho ban đầu 2; stock hiện tại = 0
+TC_PROF_001  PASS  HTTP 200. {"id": 1, "fullName": "User Seed", "email": "taobattu@gmail.com", "phone": "0900000001", "address": "123 Đường Láng, Hà Nội", "role": "USER"
+TC_PROF_002  PASS  HTTP 200. {"id": 2, "fullName": "Admin Seed", "email": "Admin@gmail.com", "phone": "0900000002", "address": "Hà Nội, Việt Nam", "role": "ADMIN"}
+TC_PROF_003  PASS  HTTP 401. (body rỗng)
+TC_PROF_004  PASS  HTTP 200. {"success": true} | GET profile fullName='User Seed Updated'
+TC_PROF_005  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 23505: duplicate key value violates unique constraint "users_phone_key"
+TC_PROF_006  FAIL  HTTP 200. {"success": true}
+TC_PROF_007  FAIL  HTTP 200. {"success": true}
+TC_PROF_008  FAIL  HTTP 200. {"success": true}
+TC_PROF_009  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 22001: value too long for type character varying(20)
+TC_PROF_010  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 22001: value too long for type character varying(255)
+TC_PROF_011  FAIL  HTTP 200. {"success": true}
+TC_PROF_012  PASS  HTTP 200. {"success": true} | DB: email=taobattu@gmail.com, role=USER
+TC_PROF_013  PASS  HTTP 401. (body rỗng)
+TC_PROF_014  FAIL  HTTP 404. (body rỗng)
+TC_PROF_015  PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_ORD_001   PASS  HTTP 200. {"orderId": 1}
+TC_ORD_002   PASS  HTTP 200. {"orderId": 1}
+TC_ORD_003   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_004   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_005   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_006   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_007   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_008   PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_ORD_009   PASS  HTTP 200. {"id": 1, "totalAmount": 24590000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:49.433353", "customerName": "Le Van A", "custo
+TC_ORD_010   PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-eb777c18ceb9dcaf45249733e
+TC_ORD_011   FAIL  HTTP 200. {"id": 1, "totalAmount": 24590000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:49.433353", "customerName": "Le Van A", "custo
+TC_ORD_012   FAIL  HTTP 200. {"id": 3, "totalAmount": 26490000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:49.983336", "customerName": "User Seed", "cust
+TC_ORD_013   FAIL  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_ORD_014   FAIL  HTTP 404. (body rỗng)
+TC_ORD_015   PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-d3f37ee3e31e53583a7fc7e89
+TC_ORD_016   PASS  HTTP 404. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.5", "title": "Not Found", "status": 404, "traceId": "00-fc250c3a4d9c44d640c589923
+TC_ORD_017   PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_ORD_018   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_019   FAIL  30 request dò SĐT → mã: [404] (không có Rate Limiting)
+TC_ORD_020   PASS  HTTP 200. {"success": true} | address DB NULL
+TC_ORD_021   PASS  HTTP 200. {"success": true}
+TC_ORD_022   PASS  HTTP 200. {"success": true} | phone DB=N
+TC_ORD_023   PASS  HTTP 404. {"message": "Không tìm thấy người dùng."}
+TC_ORD_024   FAIL  HTTP 200. {"success": true}
+TC_AUTH_044  FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 23503: insert or update on table "cart_items" violates foreign key constraint "cart_items_user_id_fke
+TC_ORD_025   PASS  HTTP 400. {"type": "https://tools.ietf.org/html/rfc9110#section-15.5.1", "title": "One or more validation errors occurred.", "status": 400, "errors": 
+TC_ORD_026   PASS  HTTP 404. {"message": "Không tìm thấy đơn hàng hoặc SĐT không khớp."}
+TC_ORD_027   PASS  HTTP 200. {"orderId": 1}
+TC_ADM_001   PASS  HTTP 200. {"revenue": 0}
+TC_ADM_002   PASS  HTTP 200. {"productCount": 40, "categoryCount": 7, "orderCount": 19, "userCount": 18, "revenue": 0, "recentOrders": [{"id": 22, "customername": "Le Va
+TC_ADM_003   PASS  HTTP 403. (body rỗng)
+TC_ADM_004   PASS  HTTP 200. [{"id": 1, "name": "Acer"}, {"id": 2, "name": "Gigabyte"}, {"id": 3, "name": "Apple"}, {"id": 4, "name": "Asus"}, {"id": 5, "name": "Dell"},
+TC_ADM_005   PASS  HTTP 200. {"success": true, "id": 8}
+TC_ADM_006   PASS  HTTP 200. {"success": true, "id": 8} | name DB='MSI Gaming Updated'
+TC_ADM_007   FAIL  HTTP 400. {"success": false, "message": "23505: duplicate key value violates unique constraint \"categories_name_key\"\r\n\r\nDETAIL: Detail redacted 
+TC_ADM_008   FAIL  HTTP 200. {"success": true, "id": 10}
+TC_ADM_009   FAIL  HTTP 200. {"success": true, "id": 11}
+TC_ADM_010   FAIL  HTTP 200. {"success": true, "id": 0}
+TC_ADM_011   PASS  HTTP 200. {"success": true} | đã xóa
+TC_ADM_012   PASS  HTTP 400. {"success": false, "message": "Không thể xóa! Danh mục đang chứa sản phẩm."}
+TC_ADM_013   FAIL  HTTP 200. {"success": true}
+TC_ADM_014   PASS  HTTP 200. {"success": true, "id": 119}
+TC_ADM_015   PASS  HTTP 200. {"success": true, "id": 119} | DB cpu/ram = ['Core i9', '32GB']
+TC_ADM_048   FAIL  Sau TC_ADM_015 (không gửi storage): product_details.storage = NULL (trước đó '512GB')
+TC_ADM_016   FAIL  HTTP 200. {"success": true, "id": 120}
+TC_ADM_017   FAIL  HTTP 200. {"success": true, "id": 121}
+TC_ADM_018   FAIL  HTTP 200. {"success": true, "id": 122}
+TC_ADM_019   FAIL  HTTP 400. {"success": false, "message": "23503: insert or update on table \"products\" violates foreign key constraint \"products_category_id_fkey\"\r
+TC_ADM_020   FAIL  HTTP 400. {"success": false, "message": "23503: insert or update on table \"product_details\" violates foreign key constraint \"product_details_produc
+TC_ADM_052   PASS  HTTP 200. {"success": true} | cart_items còn SP=0
+TC_ADM_021   PASS  HTTP 200. {"success": true} | product_details còn=0
+TC_ADM_022   PASS  HTTP 400. {"success": false, "message": "Không thể xóa sản phẩm."}
+TC_ADM_023   FAIL  HTTP 200. {"success": true}
+TC_ADM_024   PASS  HTTP 200. {"orders": [{"id": 22, "totalAmount": 45980000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:51.638459", "customerName": "Le V
+TC_ADM_025   PASS  HTTP 200. {"orders": [{"id": 22, "totalAmount": 45980000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:51.638459", "customerName": "Le V
+TC_ADM_026   PASS  HTTP 200. {"orders": [{"id": 22, "totalAmount": 45980000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:51.638459", "customerName": "Le V
+TC_ADM_027   PASS  HTTP 200. {"orders": [{"id": 22, "totalAmount": 45980000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:51.638459", "customerName": "Le V
+TC_ADM_051   PASS  HTTP 200. {"orders": [{"id": 22, "totalAmount": 45980000.0, "status": "CHỜ XÁC NHẬN", "orderDate": "2026-11-18T13:48:51.638459", "customerName": "Le V
+TC_ADM_028   FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 2201X: OFFSET must not be negative
+TC_ADM_029   FAIL  HTTP 200. {"orders": [], "currentPage": 0, "totalPages": -2147483648, "totalElements": 0}
+TC_ADM_030   PASS  HTTP 200. {"success": true} | status DB='ĐANG GIAO'
+TC_ADM_047   PASS  HTTP 200. {"success": true} | status DB='ĐÃ XÁC NHẬN'
+TC_ADM_031   FAIL  HTTP 200. {"success": true}
+TC_ADM_032   FAIL  HTTP 200. {"success": true} | status DB='None'
+TC_ADM_033   FAIL  Hủy: HTTP 200, stock SP102 16→16 (không hoàn kho); chuyển ngược ĐÃ HỦY→CHỜ XÁC NHẬN: HTTP 200
+TC_ADM_034   FAIL  HTTP 200. {"success": true}
+TC_ADM_050   PASS  revenue trước=0, sau khi đơn 1 → HOÀN THÀNH = 24,590,000 (chênh 24,590,000 = totalAmount 24,590,000)
+TC_ADM_035   PASS  HTTP 200. {"users": [{"id": 1, "fullName": "User Seed", "email": "taobattu@gmail.com", "phone": "0900000001", "address": "123 Đường Láng, Hà Nội", "ro
+TC_ADM_036   PASS  HTTP 200. {"users": [{"id": 1, "fullName": "User Seed", "email": "taobattu@gmail.com", "phone": "0900000001", "address": "123 Đường Láng, Hà Nội", "ro
+TC_ADM_037   FAIL  HTTP 500. Npgsql.PostgresException (0x80004005): 2201X: OFFSET must not be negative
+TC_ADM_038   FAIL  HTTP 200. {"users": [], "currentPage": 0, "totalPages": -2147483648, "totalElements": 0}
+TC_ADM_039   PASS  HTTP 200. {"success": true}
+TC_ADM_040   FAIL  HTTP 200. {"success": true} | role DB='SUPER_HACKER_ROLE'
+TC_ADM_042   FAIL  HTTP 200. {"success": true}
+TC_ADM_049   FAIL  PUT role='admin' → HTTP 200; role DB='admin'; user 1 đăng nhập lại gọi /api/admin/dashboard/stats → HTTP 403
+TC_AUTH_043  FAIL  HTTP 200. {"productCount": 43, "categoryCount": 7, "orderCount": 19, "userCount": 18, "revenue": 24590000.0, "recentOrders": [{"id": 22, "customername
+TC_ADM_044   PASS  HTTP 400. {"success": false, "message": "Không thể xóa do người này đã có lịch sử mua hàng!"}
+TC_ADM_053   PASS  HTTP 200. {"success": true} | user còn=0, cart còn=0
+TC_ADM_043   PASS  HTTP 200. {"success": true} | đã xóa
+TC_ADM_046   FAIL  HTTP 200. {"success": true}
+TC_ADM_041   FAIL  HTTP 200. {"success": true} | role Admin DB='USER'
+TC_ADM_045   FAIL  HTTP 200. {"success": true} | tài khoản Admin ĐÃ BỊ XÓA
+TOTAL 237 PASS 138
